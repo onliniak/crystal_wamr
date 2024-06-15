@@ -5,7 +5,9 @@ TODO: Write a description here
 Bindings to [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime).
 Tested with 1.2.3
 
-Not works: AOT files
+For production apps use https://github.com/naqvis/wasmer-crystal
+
+Why? I wanted to have user-submitted functions on free hosting without sudo, but with SSH.
 
 ## Installation
 
@@ -37,6 +39,26 @@ p wasm.exec(File.read("math.wasm"), "pow", argv, "This is my custom message") # 
 ```
 
 TODO: Write usage instructions here
+
+## Known Issues
+
+### Invalid memory access (signal 11) at address 0x0
+
+Use https://github.com/naqvis/wasmer-crystal
+
+For some reason grain lang and TinyGO reject argv array.
+[c4WA](https://github.com/kign/c4wa) works. I haven't checked emscripten but it likely works.
+
+### AssemblyScript: "Exception: failed to call unlinked import function (env, abort)".
+
+https://github.com/bytecodealliance/wasm-micro-runtime/issues/510
+
+### Strings
+
+It seems that on the default settings you can not return array. Only single numeric value. But I could be wrong. 
+EDIT: https://github.com/bytecodealliance/wasm-micro-runtime/issues/263
+
+### No AOT support
 
 ## Development
 
