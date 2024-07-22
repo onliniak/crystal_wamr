@@ -31,4 +31,23 @@ describe CrystalWamr do
     test = wasm.exec(File.read("spec/math.wasm"), "pow", argv, "This is my custom message")
     test.should eq "This is my custom message 8"
   end
+
+   it "Collatz AOT benchmark", tags: "benchmark" do
+    Process.new("./wamrc", ["-o", "spec/collatz.aot", "spec/collatz.wasm"]) unless File.exists?("spec/collatz.aot")
+    sleep 1
+
+    if File.exists?("spec/collatz.aot")
+      Benchmark.bm do |x|
+        x.report("WAMR AOT Bindings") do
+          wasm = CrystalWamr::WASM.new
+
+          argv = Array(Int32).new
+          argv << 626331
+          p wasm.exec(File.read("spec/collatz.aot"), "collatz", argv)
+        end
+        x.report("Native Crystal") do
+          collatz 626331, true
+        end
+      end
+    
 end
