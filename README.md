@@ -45,6 +45,7 @@ TODO: Write usage instructions here
 ### Invalid memory access (signal 11) at address 0x0
 
 Use https://github.com/naqvis/wasmer-crystal
+If you are using AOT make sure wamrc is in the same version as iwasm
 
 For some reason grain lang and TinyGO reject argv array.
 [c4WA](https://github.com/kign/c4wa) works. I haven't checked emscripten but it likely works.
@@ -57,8 +58,6 @@ https://github.com/bytecodealliance/wasm-micro-runtime/issues/510
 
 It seems that on the default settings you can not return array. Only single numeric value. But I could be wrong. 
 EDIT: https://github.com/bytecodealliance/wasm-micro-runtime/issues/263
-
-### No AOT support
 
 ## Development
 
