@@ -51,7 +51,7 @@ describe CrystalWamr do
 # Native Crystal    "#N : 508"
 #   0.000000   0.000077   0.000077 (  0.000077)
    it "Collatz AOT benchmark", tags: "benchmark" do
-    Process.new("./wamrc", ["-o", "spec/collatz.aot", "spec/collatz.wasm"]) unless File.exists?("spec/collatz.aot")
+    Process.new("./wamrc", ["--enable-segue", "-o", "spec/collatz.aot", "spec/collatz.wasm"]) unless File.exists?("spec/collatz.aot")
     sleep 1
 
     if File.exists?("spec/collatz.aot")
