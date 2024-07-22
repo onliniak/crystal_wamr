@@ -32,6 +32,24 @@ describe CrystalWamr do
     test.should eq "This is my custom message 8"
   end
 
+# $ time ./main
+# "collatz function return: 508"
+
+# real    0m0.052s
+# user    0m0.008s
+# sys 0m0.028s
+# $ time ./main1
+# "#N : 508"
+
+# real    0m0.107s
+# user    0m0.021s
+# sys 0m0.005s
+# $ benchmark
+#                           user     system      total        real
+# WAMR AOT Bindings "collatz function return: 508"
+#   0.000000   0.007949   0.007949 (  0.008320)
+# Native Crystal    "#N : 508"
+#   0.000000   0.000077   0.000077 (  0.000077)
    it "Collatz AOT benchmark", tags: "benchmark" do
     Process.new("./wamrc", ["-o", "spec/collatz.aot", "spec/collatz.wasm"]) unless File.exists?("spec/collatz.aot")
     sleep 1
