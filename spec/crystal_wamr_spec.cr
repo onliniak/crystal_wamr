@@ -49,5 +49,5 @@ describe CrystalWamr do
           collatz 626331, true
         end
       end
-    
+  end
 end
