@@ -25,17 +25,20 @@ module CrystalWamr
       fun wasm_runtime_destroy : Nil
     end
 
-    def function_args(value : Int32, variable : String?, sys, functions, index, output)
+    def function_args(value : Int32, variable : String?, sys, functions, index, output, path)
       functions[index] << value
     end
 
-    def function_args(value : Nil, variable : String?, sys, functions, index, output)
+    def function_args(value : Nil, variable : String?, sys, functions, index, output, path)
     end
 
-    def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output)
+    def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output, path)
       x = 0
       if variable == "$URL"
-        x = 27 # context.request.path.strip("/").to_i
+        a = path =~ /^(0|[1-9][0-9]*)$/
+      if a == 0
+         x = path
+      end
       end
 
       if sys.name == "cbrt"
@@ -43,11 +46,11 @@ module CrystalWamr
       end
     end
 
-    def function_args(value : Nil, variable : String, sys : Nil, functions, index, output)
+    def function_args(value : Nil, variable : String, sys : Nil, functions, index, output, path)
       output[index] = variable
     end
 
-    def function_args(value : Nil, variable : String?, sys : Nil, functions, index, output)
+    def function_args(value : Nil, variable : String?, sys : Nil, functions, index, output, path)
     end
 
     # def output(x : String | Nil, output, name)
@@ -57,10 +60,10 @@ module CrystalWamr
     #   output[name] = x
     # end
 
-    def exec_json(config : CrystalWamr::WamrConfig, functions = Hash(String, Array(Int32)).new, output = Hash(String, String).new)
+    def exec_json(config : CrystalWamr::WamrConfig, path : String, functions = Hash(String, Array(Int32)).new, output = Hash(String, String).new)
       config.func.map do |i|
         functions[i.name] = [] of Int32
-        i.input.map { |x| function_args(x.argv.int, x.argv.var, x.argv.sys, functions, i.name, output) }
+        i.input.map { |x| function_args(x.argv.int, x.argv.var, x.argv.sys, functions, i.name, output, path) }
         # output i.output, output, i.name
       end
       exec(File.read(config.file), functions, output)
