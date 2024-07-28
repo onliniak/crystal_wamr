@@ -5,9 +5,10 @@ TODO: Write a description here
 Bindings to [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime). </br>
 Tested with 1.2.3 and 2.1.0
 
-For production apps use https://github.com/naqvis/wasmer-crystal
+For production apps use https://github.com/naqvis/wasmer-crystal </br>
+API is incomplete. Lib provides only "basic" functionality (without strings, network, functions, filesystem access).
 
-Pure WASM a.k.a "browser" engine with crystal std library and inheritance. 
+**Pure WASM a.k.a "browser" engine** with crystal std library and inheritance. 
 
 ## Installation
 
