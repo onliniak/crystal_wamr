@@ -76,7 +76,7 @@ module CrystalWamr
     end
 
     def return_hash
-      return @hash.to_s
+      return @hash
     end
 
     # Example:
