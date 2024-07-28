@@ -81,7 +81,7 @@ end
 address = server.bind_tcp "0.0.0.0", 8080
 server.listen
 ```
-
+```
 You can run several functions simultaneously. 
 
 file = filename with extension .aot or .wasm
@@ -94,7 +94,7 @@ input
     sys = pass the result to the crystal function
       name = function name
       argv = temporarily unused option to pass multiple function arguments  
-```
+
 The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27.
 It then passes the number to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
 
