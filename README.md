@@ -24,6 +24,17 @@ API is incomplete. Lib provides only "basic" functionality (without strings, net
 
 ## Usage
 
+CLI
+
+```crystal
+require "crystal_wamr"
+
+wasm = CrystalWamr::WASM.new
+
+wasm.exec(File.read("fib.wasm"), {"fib" => [8]})
+p wasm.return_hash["fib"] # => 21
+```
+
 Server
 
 ```crystal
@@ -108,17 +119,6 @@ How import custom functions ?
 if sys.name == "cbrt"
   functions[index] << Math.cbrt(x).to_i
 end
-```
-
-CLI
-
-```crystal
-require "crystal_wamr"
-
-wasm = CrystalWamr::WASM.new
-
-wasm.exec(File.read("fib.wasm"), {"fib" => [8]})
-p wasm.return_hash["fib"] # => 21
 ```
 
 TODO: Write usage instructions here
