@@ -31,7 +31,7 @@ require "crystal_wamr"
 
 wasm = CrystalWamr::WASM.new
 
-wasm.exec(File.read("fib.wasm"), {"fib" => [8]})
+wasm.exec(File.read("fib.aot"), {"fib" => [8]})
 p wasm.return_hash["fib"] # => 21
 ```
 
