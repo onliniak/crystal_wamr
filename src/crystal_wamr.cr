@@ -64,7 +64,6 @@ module CrystalWamr
         # output i.output, output, i.name
       end
       exec(File.read(config.file), functions, output)
-      return_hash
     end
 
     @hash = Hash(String, Int32).new
