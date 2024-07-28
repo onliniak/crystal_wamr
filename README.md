@@ -7,7 +7,7 @@ Tested with 1.2.3 and 2.1.0
 
 For production apps use https://github.com/naqvis/wasmer-crystal
 
-Pure WASM a.k.a "browser" engine with cfrystal std library and inheritance. 
+Pure WASM a.k.a "browser" engine with crystal std library and inheritance. 
 
 ## Installation
 
@@ -39,8 +39,7 @@ config = CrystalWamr::WamrConfig.from_json(%({
       "input": [
         {
           "argv": {
-            "int": 2,
-            "var": ""
+            "int": 2
           }
         },
         {
@@ -59,8 +58,7 @@ config = CrystalWamr::WamrConfig.from_json(%({
       "input": [
         {
           "argv": {
-            "int": 2,
-            "var": ""
+            "int": 2
           }
         },
         {
@@ -96,11 +94,12 @@ input
     sys = pass the result to the crystal function
       name = function name
       argv = temporarily unused option to pass multiple function arguments  
-
-The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27. It then passes the number to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
+```
+The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27.
+It then passes the number to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
 
 The mul function multiplies the result of the add function (5 in the example) by 2. 
-
+```
 How import custom functions ?
 
 ```crystal
