@@ -2,12 +2,12 @@
 
 TODO: Write a description here
 
-Bindings to [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime).
-Tested with 1.2.3
+Bindings to [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime). </br>
+Tested with 1.2.3 and 2.1.0
 
 For production apps use https://github.com/naqvis/wasmer-crystal
 
-Why? I wanted to have user-submitted functions on free hosting without sudo, but with SSH.
+Pure WASM a.k.a "browser" engine with cfrystal std library and inheritance. 
 
 ## Installation
 
@@ -23,19 +23,102 @@ Why? I wanted to have user-submitted functions on free hosting without sudo, but
 
 ## Usage
 
+Server
+
+```crystal
+require "http/server"
+require "crystal_wamr"
+require "json"
+
+wasm = CrystalWamr::WASM.new
+config = CrystalWamr::WamrConfig.from_json(%({
+  "file": "lib/crystal_wamr/spec/math.wasm",
+  "func": [
+    {
+      "name": "add",
+      "input": [
+        {
+          "argv": {
+            "int": 2,
+            "var": ""
+          }
+        },
+        {
+          "argv": {
+            "var": "$URL",
+            "sys": {
+              "name": "cbrt",
+              "argv": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "mul",
+      "input": [
+        {
+          "argv": {
+            "int": 2,
+            "var": ""
+          }
+        },
+        {
+          "argv": {
+            "var": "add"
+          }
+        }
+      ]
+    }
+  ]
+  }))
+
+server = HTTP::Server.new do |context|
+  wasm.exec_json(config, context.request.path.strip("/"))
+  
+  context.response.content_type = "text/plain"
+  context.response.print wasm.return_hash.to_s
+end
+
+address = server.bind_tcp "0.0.0.0", 8080
+server.listen
+```
+
+You can run several functions simultaneously. 
+
+file = filename with extension .aot or .wasm
+name = name of the WASM function
+
+input 
+  argv = array of Int32 numbers
+    int = array Int32
+    var = use number from web address or result of another function
+    sys = pass the result to the crystal function
+      name = function name
+      argv = temporarily unused option to pass multiple function arguments  
+
+The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27. It then passes the number to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
+
+The mul function multiplies the result of the add function (5 in the example) by 2. 
+
+How import custom functions ?
+
+```crystal
+#src/crystal_wamr.cr
+if sys.name == "cbrt"
+  functions[index] << Math.cbrt(x).to_i
+end
+```
+
+CLI
+
 ```crystal
 require "crystal_wamr"
 
 wasm = CrystalWamr::WASM.new
 
-argv = Array(Int32).new
-argv << 8
-p wasm.exec(File.read("fib.wasm"), "fib", argv) # => fib function return: 21
-
-argv = Array(Int32).new
-argv << 2
-argv << 3
-p wasm.exec(File.read("math.wasm"), "pow", argv, "This is my custom message") # => This is my custom message 8
+wasm.exec(File.read("fib.wasm"), {"fib" => [8]})
+p wasm.return_hash["fib"] # => 21
 ```
 
 TODO: Write usage instructions here
@@ -44,11 +127,10 @@ TODO: Write usage instructions here
 
 ### Invalid memory access (signal 11) at address 0x0
 
-Use https://github.com/naqvis/wasmer-crystal
 If you are using AOT make sure wamrc is in the same version as iwasm
 
-For some reason grain lang and TinyGO reject argv array.
-[c4WA](https://github.com/kign/c4wa) works. I haven't checked emscripten but it likely works.
+#### No WASI Support
+Use [c4WA](https://github.com/kign/c4wa) or clang with --nostdlib --target=wasm32
 
 ### AssemblyScript: "Exception: failed to call unlinked import function (env, abort)".
 
@@ -56,8 +138,7 @@ https://github.com/bytecodealliance/wasm-micro-runtime/issues/510
 
 ### Strings
 
-It seems that on the default settings you can not return array. Only single numeric value. But I could be wrong. 
-EDIT: https://github.com/bytecodealliance/wasm-micro-runtime/issues/263
+Use https://github.com/naqvis/wasmer-crystal
 
 ## Development
 
