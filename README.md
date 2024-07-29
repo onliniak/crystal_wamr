@@ -1,180 +1,118 @@
-# crystal_wamr
+require "./crystal_wamr_config"
 
-TODO: Write a description here
-
-Bindings to [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime). </br>
-Tested with 1.2.3 and 2.1.0
-
-**Pure WASM a.k.a "browser" engine** with crystal std library and inheritance. 
-
-## Installation
-
-1. Add the dependency to your `shard.yml`:
-
-   ```yaml
-   dependencies:
-     crystal_wamr:
-       github: onliniak/crystal_wamr
-   ```
-
-2. Run `shards install`
-
-## Usage
-
-CLI
-
-```crystal
-require "crystal_wamr"
-
-wasm = CrystalWamr::WASM.new
-
-wasm.exec(File.read("fib.aot"), {"fib" => [8]})
-p wasm.return_hash["fib"] # => 21
-```
-
-Server
-
-```crystal
-require "http/server"
-require "crystal_wamr"
-require "json"
-
-wasm = CrystalWamr::WASM.new
-config = CrystalWamr::WamrConfig.from_json(%({
-  "file": "lib/crystal_wamr/spec/math.wasm",
-  "func": [
-    {
-      "name": "add",
-      "input": [
-        {
-          "argv": {
-            "int": 2
-          }
-        },
-        {
-          "argv": {
-            "var": "$URL",
-            "sys": {
-              "name": "cbrt",
-              "argv": []
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "mul",
-      "input": [
-        {
-          "argv": {
-            "int": 2
-          }
-        },
-        {
-          "argv": {
-            "var": "add"
-          }
-        }
-      ]
-    }
-  ]
-  }))
-
-server = HTTP::Server.new do |context|
-  wasm.exec_json(config, context.request.path.strip("/"))
-  
-  context.response.content_type = "text/plain"
-  context.response.print wasm.return_hash.to_s
-end
-
-address = server.bind_tcp "0.0.0.0", 8080
-server.listen
-```
-```crystal
+# TODO: Write documentation for `CrystalWamr`
 module CrystalWamr
+  VERSION = "0.1.0"
+
   class WASM
-    def capture(&block : Int32 -> Int32)
-      # block argument is used, so block is turned into a Proc
-      block
+    @[Link("iwasm")]
+    lib LibWasm
+      type WASMModuleCommon = Void
+      type WASMModuleInstanceCommon = Void
+      type WASMExecEnv = Void
+      type WASMFunctionInstanceCommon = Void
+
+      fun wasm_runtime_init : Bool
+      fun wasm_runtime_load(LibC::Char*, LibC::UInt, LibC::Char*, LibC::UInt) : WASMModuleCommon*
+      fun wasm_runtime_instantiate(WASMModuleCommon*, LibC::UInt, LibC::UInt, LibC::Char*, LibC::UInt) : WASMModuleInstanceCommon*
+      fun wasm_runtime_lookup_function(WASMModuleInstanceCommon*, LibC::Char*, LibC::Char*) : WASMFunctionInstanceCommon*
+      fun wasm_runtime_create_exec_env(WASMModuleInstanceCommon*, LibC::UInt) : WASMExecEnv*
+      fun wasm_runtime_call_wasm(WASMExecEnv*, WASMFunctionInstanceCommon*, LibC::UInt, LibC::Int*) : Bool
+      fun wasm_runtime_get_exception(WASMModuleInstanceCommon*) : LibC::Char*
+      fun wasm_runtime_destroy_exec_env(WASMExecEnv*)
+      fun wasm_runtime_deinstantiate(WASMModuleInstanceCommon*)
+      fun wasm_runtime_unload(WASMModuleCommon*)
+      fun wasm_runtime_destroy : Nil
     end
 
-    def native_functions(sys, functions, index, url_path : String)
+    def function_args(value : Int32, variable : String?, sys, functions, index, output, path)
+      functions[index] << value
     end
 
-    def native_functions(sys, functions, index, url_path : Int32)
-      argv = [] of Int32
-      if sys.argv.size == 0
-        argv[0] = url_path
-      else
-        argv = sys.argv
-      end
-      proc = capture do
-        if sys.name == "cbrt"
-          functions[index] << Math.cbrt(argv[0]).to_i
+    def function_args(value : Nil, variable : String?, sys, functions, index, output, path)
+    end
+
+    def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output, path)
+      x = 0
+      if variable == "$URL"
+        a = path =~ /^(0|[1-9][0-9]*)$/
+        if a == 0
+          x = path
         end
-        if sys.name == "hypot"
-          functions[index] << Math.hypot(argv[0], argv[1]).to_i
-        end
-        0
       end
-      proc.call(1)
+      native_functions sys, functions, index, x
+    end
+
+    def function_args(value : Nil, variable : String, sys : Nil, functions, index, output, path)
+      output[index] = variable
+    end
+
+    def function_args(value : Nil, variable : String?, sys : Nil, functions, index, output, path)
+    end
+
+    def exec_json(config : CrystalWamr::WamrConfig, path : String, functions = Hash(String, Array(Int32)).new, output = Hash(String, String).new)
+      config.func.map do |i|
+        functions[i.name] = [] of Int32
+        i.input.map { |x| function_args(x.argv.int, x.argv.var, x.argv.sys, functions, i.name, output, path) }
+        # output i.output, output, i.name
+      end
+      exec(File.read(config.file), functions, output)
+    end
+
+    @hash = Hash(String, Int32).new
+
+    def add_to_hash(name, value)
+      @hash[name] = value
+    end
+
+    def return_hash
+      return @hash
+    end
+
+    # Example:
+    # ```
+    # wasm = CrystalWamr::WASM.new
+    # wasm.exec(*wasm_file* = absolute path to file, *function_name*, *argv* = array of arguments, *msg* = print custom message, *io_error*, *stack_size*, *heap_size*)
+    # ```
+    def exec(wasm_file : String, functions = Hash(String, Array(Int32)).new, output = Hash(String, String).new)
+      # initialize the wasm runtime by default configurations
+      LibWasm.wasm_runtime_init
+      # read WASM file into a memory buffer
+      # parse the WASM file from buffer and create a WASM module
+      mymodule = LibWasm.wasm_runtime_load(wasm_file, wasm_file.size, "", 0)
+      # create an instance of the WASM module (WASM linear memory is ready)
+      module_inst = LibWasm.wasm_runtime_instantiate(mymodule, 8092, 8092, "", 0)
+
+      functions.each do |x, argv|
+        if output.has_key? x
+          a = output[x]
+          argv << @hash[a]
+        end
+
+        # lookup a WASM function by its name
+        # The function signature can NULL here
+        function = LibWasm.wasm_runtime_lookup_function(module_inst, x, "(NULL)")
+
+        # creat an execution environment to execute the WASM functions
+        exec_env = LibWasm.wasm_runtime_create_exec_env(module_inst, 8092)
+        # call the WASM function
+        if LibWasm.wasm_runtime_call_wasm(exec_env, function, argv.size, argv)
+          # the return value is stored in argv[0]
+          # argv = array of arguments
+          add_to_hash(x, argv[0])
+        else
+          LibWasm.wasm_runtime_get_exception(module_inst)
+          # exception is thrown if call fails
+        end
+        functions.delete(x)
+      end
+      # creat an execution environment to execute the WASM functions
+      exec_env = LibWasm.wasm_runtime_create_exec_env(module_inst, 8092)
+
+      LibWasm.wasm_runtime_destroy_exec_env(exec_env)
+      LibWasm.wasm_runtime_deinstantiate(module_inst)
+      LibWasm.wasm_runtime_unload(mymodule)
+      LibWasm.wasm_runtime_destroy
     end
   end
 end
-```
-```
-You can run several functions simultaneously. 
-
-file = filename with extension .aot or .wasm
-name = name of the WASM function
-
-input 
-  argv = array of Int32 numbers
-    int = array Int32
-    var = use number from web address or result of another function
-    sys = pass the result to the crystal function
-      name = function name
-      argv = function arguments : Int32  
-
-The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27.
-It then passes $URL to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
-
-The mul function multiplies the result of the add function (5 in the example) by 2. 
-```
-
-TODO: Write usage instructions here
-
-## Known Issues
-
-### Invalid memory access (signal 11) at address 0x0
-
-If you are using AOT make sure wamrc is in the same version as iwasm
-
-#### No WASI Support
-Use [c4WA](https://github.com/kign/c4wa) or clang with --nostdlib --target=wasm32
-
-If you absolutely need WASI PR welcome.
-
-### Performance
-
-The identical code in the crystal and C4WA has a similar speed. However, it is quite possible that I made some serious mistakes in the code and the speed of this library will be lower than iwasm. If it bothers you PR welcome.
-
-### Strings
-
-Use https://github.com/naqvis/wasmer-crystal
-
-## Development
-
-TODO: Write development instructions here
-
-## Contributing
-
-1. Fork it (<https://github.com/onliniak/crystal_wamr/fork>)
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
-
-## Contributors
-
-- [Rafael Pszenny](https://github.com/onliniak) - creator and maintainer
