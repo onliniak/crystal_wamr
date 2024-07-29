@@ -33,6 +33,6 @@ module CrystalWamr
     include JSON::Serializable
 
     property name : String
-    property argv : Array(Int32?)
+    property argv : Array(Int32)
   end
 end
