@@ -33,14 +33,7 @@ def function_args(value : Nil, variable : String?, sys, functions, index, output
 end
 
 def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output, path)
-x = 0
-if variable == "$URL"
-  a = path =~ /^(0|[1-9][0-9]*)$/
-if a == 0
-   x = path
-end
-end
-native_functions sys, functions, index, x
+native_functions sys, functions, index, variable, path
 end
 
 def function_args(value : Nil, variable : String, sys : Nil, functions, index, output, path)
