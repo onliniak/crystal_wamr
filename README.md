@@ -90,27 +90,6 @@ end
 address = server.bind_tcp "0.0.0.0", 8080
 server.listen
 ```
-```
-You can run several functions simultaneously. 
-
-file = filename with extension .aot or .wasm
-name = name of the WASM function
-
-input 
-  argv = array of Int32 numbers
-    int = array Int32
-    var = use number from web address or result of another function
-    sys = pass the result to the crystal function
-      name = function name
-      argv = function arguments : Int32  
-
-The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27.
-It then passes $URL to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
-
-The mul function multiplies the result of the add function (5 in the example) by 2. 
-```
-How import custom functions ?
-
 ```crystal
 module CrystalWamr
   class WASM
@@ -143,6 +122,25 @@ module CrystalWamr
   end
 end
 ```
+```
+You can run several functions simultaneously. 
+
+file = filename with extension .aot or .wasm
+name = name of the WASM function
+
+input 
+  argv = array of Int32 numbers
+    int = array Int32
+    var = use number from web address or result of another function
+    sys = pass the result to the crystal function
+      name = function name
+      argv = function arguments : Int32  
+
+The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27.
+It then passes $URL to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
+
+The mul function multiplies the result of the add function (5 in the example) by 2. 
+```
 
 TODO: Write usage instructions here
 
@@ -155,9 +153,11 @@ If you are using AOT make sure wamrc is in the same version as iwasm
 #### No WASI Support
 Use [c4WA](https://github.com/kign/c4wa) or clang with --nostdlib --target=wasm32
 
-### AssemblyScript: "Exception: failed to call unlinked import function (env, abort)".
+If you absolutely need WASI PR welcome.
 
-https://github.com/bytecodealliance/wasm-micro-runtime/issues/510
+### Performance
+
+The identical code in the crystal and C4WA has a similar speed. However, it is quite possible that I made some serious mistakes in the code and the speed of this library will be lower than iwasm. If it bothers you PR welcome.
 
 ### Strings
 
