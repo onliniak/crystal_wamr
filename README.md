@@ -5,9 +5,6 @@ TODO: Write a description here
 Bindings to [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime). </br>
 Tested with 1.2.3 and 2.1.0
 
-For production apps use https://github.com/naqvis/wasmer-crystal </br>
-API is incomplete. Lib provides only "basic" functionality (without strings, network, functions, filesystem access).
-
 **Pure WASM a.k.a "browser" engine** with crystal std library and inheritance. 
 
 ## Installation
@@ -105,19 +102,45 @@ input
     var = use number from web address or result of another function
     sys = pass the result to the crystal function
       name = function name
-      argv = temporarily unused option to pass multiple function arguments  
+      argv = function arguments : Int32  
 
 The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27.
-It then passes the number to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
+It then passes $URL to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
 
 The mul function multiplies the result of the add function (5 in the example) by 2. 
 ```
 How import custom functions ?
 
 ```crystal
-#src/crystal_wamr.cr
-if sys.name == "cbrt"
-  functions[index] << Math.cbrt(x).to_i
+module CrystalWamr
+  class WASM
+    def capture(&block : Int32 -> Int32)
+      # block argument is used, so block is turned into a Proc
+      block
+    end
+
+    def native_functions(sys, functions, index, url_path : String)
+    end
+
+    def native_functions(sys, functions, index, url_path : Int32)
+      argv = [] of Int32
+      if sys.argv.size == 0
+        argv[0] = url_path
+      else
+        argv = sys.argv
+      end
+      proc = capture do
+        if sys.name == "cbrt"
+          functions[index] << Math.cbrt(argv[0]).to_i
+        end
+        if sys.name == "hypot"
+          functions[index] << Math.hypot(argv[0], argv[1]).to_i
+        end
+        0
+      end
+      proc.call(1)
+    end
+  end
 end
 ```
 
