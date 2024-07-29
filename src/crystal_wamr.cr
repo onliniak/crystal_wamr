@@ -40,7 +40,7 @@ if a == 0
    x = path
 end
 end
-abc sys, functions, index, x
+native_functions sys, functions, index, x
 end
 
 def function_args(value : Nil, variable : String, sys : Nil, functions, index, output, path)
