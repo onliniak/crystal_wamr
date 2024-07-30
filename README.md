@@ -40,6 +40,7 @@ require "crystal_wamr"
 require "json"
 
 wasm = CrystalWamr::WASM.new
+
 config = CrystalWamr::WamrConfig.from_json(%({
   "file": "lib/crystal_wamr/spec/math.wasm",
   "func": [
@@ -81,8 +82,8 @@ config = CrystalWamr::WamrConfig.from_json(%({
   }))
 
 server = HTTP::Server.new do |context|
-  wasm.exec_json(config, context.request.path.strip("/"))
-  
+  wasm.exec_json(CrystalWamr::WamrConfig.from_json(File.read("config.json")), context.request.path.strip("/"))
+
   context.response.content_type = "text/plain"
   context.response.print wasm.return_hash.to_s
 end
@@ -101,10 +102,10 @@ module CrystalWamr
     def native_functions(sys, functions, index, url_path : String)
     end
 
-    def native_functions(sys, functions, index, url_path : Int32)
+    def native_functions(sys, functions, index, url_path : Array(Int32))
       argv = [] of Int32
       if sys.argv.size == 0
-        argv[0] = url_path
+        argv = url_path
       else
         argv = sys.argv
       end
