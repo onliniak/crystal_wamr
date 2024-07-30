@@ -33,11 +33,15 @@ module CrystalWamr
     end
 
     def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output, path)
-      x = 0
+      x = [] of Int32
       if variable == "$URL"
-        a = path =~ /^(0|[1-9][0-9]*)$/
-        if a == 0
-          x = path
+        if /\d*/.match(path).to_s != ""
+          a = path.scan /\d*/
+          a.each do |v|
+            x << v.to_s.to_i unless v.to_s == ""
+          end
+        else
+          x = [0, 0, 0, 0, 0]
         end
       end
       native_functions sys, functions, index, x
@@ -54,7 +58,6 @@ module CrystalWamr
       config.func.map do |i|
         functions[i.name] = [] of Int32
         i.input.map { |x| function_args(x.argv.int, x.argv.var, x.argv.sys, functions, i.name, output, path) }
-        # output i.output, output, i.name
       end
       exec(File.read(config.file), functions, output)
     end
