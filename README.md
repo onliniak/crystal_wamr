@@ -37,7 +37,6 @@ Server
 ```crystal
 require "http/server"
 require "crystal_wamr"
-require "json"
 
 wasm = CrystalWamr::WASM.new
 
