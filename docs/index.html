@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="generator" content="Crystal Docs 1.1.1">
-<meta name="crystal_docs.project_version" content="0.1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Crystal Docs 1.10.1">
+<meta name="crystal_docs.project_version" content="0.1">
 <meta name="crystal_docs.project_name" content="crystal_wamr">
 
 
@@ -13,7 +14,7 @@
 <script type="text/javascript" src="js/doc.js"></script>
 
   <meta name="repository-name" content="crystal_wamr">
-  <title>crystal_wamr 0.1.0</title>
+  <title>crystal_wamr 0.1</title>
   <script type="text/javascript">
   CrystalDocs.base_path = "";
   </script>
@@ -22,9 +23,14 @@
 
 <svg class="hidden">
   <symbol id="octicon-link" viewBox="0 0 16 16">
-    <path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+    <path fill="currentColor" fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
   </symbol>
 </svg>
+<input type="checkbox" id="sidebar-btn">
+<label for="sidebar-btn" id="sidebar-btn-label">
+  <svg class="open" xmlns="http://www.w3.org/2000/svg" height="2em" width="2em" viewBox="0 0 512 512"><title>Open Sidebar</title><path fill="currentColor" d="M80 96v64h352V96H80zm0 112v64h352v-64H80zm0 112v64h352v-64H80z"></path></svg>
+  <svg class="close" xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 512 512"><title>Close Sidebar</title><path fill="currentColor" d="m118.6 73.4-45.2 45.2L210.7 256 73.4 393.4l45.2 45.2L256 301.3l137.4 137.3 45.2-45.2L301.3 256l137.3-137.4-45.2-45.2L256 210.7Z"></path></svg>
+</label>
 <div class="sidebar">
   <div class="sidebar-header">
     <div class="search-box">
@@ -39,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        0.1.0
+        0.1
       </span>
     </div>
   </div>
@@ -55,6 +61,31 @@
       <a href="CrystalWamr.html">CrystalWamr</a>
       
         <ul>
+  
+  <li class=" " data-id="crystal_wamr/CrystalWamr/Argv" data-name="crystalwamr::argv">
+      <a href="CrystalWamr/Argv.html">Argv</a>
+      
+    </li>
+  
+  <li class=" " data-id="crystal_wamr/CrystalWamr/Func" data-name="crystalwamr::func">
+      <a href="CrystalWamr/Func.html">Func</a>
+      
+    </li>
+  
+  <li class=" " data-id="crystal_wamr/CrystalWamr/Input" data-name="crystalwamr::input">
+      <a href="CrystalWamr/Input.html">Input</a>
+      
+    </li>
+  
+  <li class=" " data-id="crystal_wamr/CrystalWamr/Sys" data-name="crystalwamr::sys">
+      <a href="CrystalWamr/Sys.html">Sys</a>
+      
+    </li>
+  
+  <li class=" " data-id="crystal_wamr/CrystalWamr/WamrConfig" data-name="crystalwamr::wamrconfig">
+      <a href="CrystalWamr/WamrConfig.html">WamrConfig</a>
+      
+    </li>
   
   <li class=" " data-id="crystal_wamr/CrystalWamr/WASM" data-name="crystalwamr::wasm">
       <a href="CrystalWamr/WASM.html">WASM</a>
@@ -78,6 +109,10 @@
   </svg>
 </a>crystal_wamr</h1>
 <p><span class="flag orange">TODO</span>  Write a description here</p>
+<p>Bindings to <a href="https://github.com/bytecodealliance/wasm-micro-runtime">WAMR</a>.
+Tested with 1.2.3</p>
+<p>For production apps use https://github.com/naqvis/wasmer-crystal</p>
+<p>Why? I wanted to have user-submitted functions on free hosting without sudo, but with SSH.</p>
 <h2><a id="installation" class="anchor" href="#installation">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -101,17 +136,44 @@
 </a>Usage</h2>
 <pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;crystal_wamr&quot;</span>
 
-wasm <span class="o">=</span> <span class="t">CrystalWamr</span><span class="t">::</span><span class="t">WASM</span>.<span class="k">new</span>
+wasm <span class="o">=</span> <span class="t">CrystalWamr</span><span class="t">::</span><span class="t">WASM</span>.new
 
-argv <span class="o">=</span> <span class="t">Array</span>(<span class="t">Int32</span>).<span class="k">new</span>
+argv <span class="o">=</span> <span class="t">Array</span>(<span class="t">Int32</span>).new
 argv <span class="o">&lt;&lt;</span> <span class="n">8</span>
 p wasm.exec(<span class="t">File</span>.read(<span class="s">&quot;fib.wasm&quot;</span>), <span class="s">&quot;fib&quot;</span>, argv) <span class="c"># =&gt; fib function return: 21</span>
 
-argv <span class="o">=</span> <span class="t">Array</span>(<span class="t">Int32</span>).<span class="k">new</span>
+argv <span class="o">=</span> <span class="t">Array</span>(<span class="t">Int32</span>).new
 argv <span class="o">&lt;&lt;</span> <span class="n">2</span>
 argv <span class="o">&lt;&lt;</span> <span class="n">3</span>
 p wasm.exec(<span class="t">File</span>.read(<span class="s">&quot;math.wasm&quot;</span>), <span class="s">&quot;pow&quot;</span>, argv, <span class="s">&quot;This is my custom message&quot;</span>) <span class="c"># =&gt; This is my custom message 8</span></code></pre>
 <p><span class="flag orange">TODO</span>  Write usage instructions here</p>
+<h2><a id="known-issues" class="anchor" href="#known-issues">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Known Issues</h2>
+<h3><a id="invalid-memory-access-signal-11-at-address-0x0" class="anchor" href="#invalid-memory-access-signal-11-at-address-0x0">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Invalid memory access (signal 11) at address 0x0</h3>
+<p>Use https://github.com/naqvis/wasmer-crystal
+If you are using AOT make sure wamrc is in the same version as iwasm</p>
+<p>For some reason grain lang and TinyGO reject argv array.
+<a href="https://github.com/kign/c4wa">c4WA</a> works. I haven't checked emscripten but it likely works.</p>
+<h3><a id="assembly-script-exception-failed-to-call-unlinked-import-function-env-abort." class="anchor" href="#assembly-script-exception-failed-to-call-unlinked-import-function-env-abort.">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>AssemblyScript: &quot;Exception: failed to call unlinked import function (env, abort)&quot;.</h3>
+<p>https://github.com/bytecodealliance/wasm-micro-runtime/issues/510</p>
+<h3><a id="strings" class="anchor" href="#strings">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Strings</h3>
+<p>It seems that on the default settings you can not return array. Only single numeric value. But I could be wrong.
+EDIT: https://github.com/bytecodealliance/wasm-micro-runtime/issues/263</p>
 <h2><a id="development" class="anchor" href="#development">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
