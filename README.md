@@ -275,7 +275,7 @@ extern int add(int a, int b){
 }
 ```
 
-```
+```bash
  hyperfine --warmup 3 './single_aot' './hash_aot' 'iwasm -f add add.wasm 8 12' -i -N
  Benchmark 1: ./single_aot
    Time (mean ± σ):      14.1 ms ±   4.1 ms    [User: 1.4 ms, System: 10.5 ms]
@@ -335,6 +335,16 @@ def collatz(c, only_result : Bool)
   p "#N : #{argv.size}"
 end
 ```
+
+The identical code in the crystal and C4WA has a similar speed. However, it is quite possible that I made some serious mistakes in the code and the speed of this library will be lower than iwasm. If it bothers you PR welcome.
+
+## Known Issues
+
+### Invalid memory access (signal 11) at address 0x0
+
+- If you are using AOT make sure wamrc is in the same version as iwasm.
+- This shard don't support WASI and Imports.
+- The function you are trying to run returns an array, char or any other type that is not int, double, float, long
 
 ## Development
 
