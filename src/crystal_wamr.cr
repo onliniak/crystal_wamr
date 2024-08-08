@@ -25,6 +25,33 @@ module CrystalWamr
       fun wasm_runtime_destroy : Nil
     end
 
+    @hash = Hash(String, Int32).new
+
+    def add_to_hash(name, value)
+      @hash[name] = value
+    end
+
+    def return_hash
+      return @hash
+    end
+
+    macro return_string(file, func, max_word_length = 16)
+        string = ""
+      {% for i in (0..max_word_length) %}
+            char = wasm.exec_once({{file}}, {{func}}, [{{i}}])
+            string += char.not_nil!.unsafe_chr
+      {% end %}
+        is_last_char_nil = string.byte_index '\u0000'
+
+        if is_last_char_nil == nil
+        p string
+        else
+        last = is_last_char_nil
+        last_char = last.not_nil! - 1
+        p string[0..last_char]
+        end
+    end
+
     def function_args(value : Int32, variable : String?, sys, functions, index, output, path)
       functions[index] << value
     end
@@ -62,28 +89,39 @@ module CrystalWamr
       exec(File.read(config.file), functions, output)
     end
 
-    @hash = Hash(String, Int32).new
-
-    def add_to_hash(name, value)
-      @hash[name] = value
-    end
-
-    def return_hash
-      return @hash
-    end
-
-    # Example:
-    # ```
-    # wasm = CrystalWamr::WASM.new
-    # wasm.exec(*wasm_file* = absolute path to file, *function_name*, *argv* = array of arguments, *msg* = print custom message, *io_error*, *stack_size*, *heap_size*)
-    # ```
-    def exec(wasm_file : String, functions = Hash(String, Array(Int32)).new, output = Hash(String, String).new)
+    def exec_once(wasm_file : String, function_name : String, argv : Array(Int32))
       # initialize the wasm runtime by default configurations
       LibWasm.wasm_runtime_init
       # read WASM file into a memory buffer
+      # buffer = LibWasm.read_wasm_binary_to_buffer(wasm_file, wasm_file.bytesize);
       # parse the WASM file from buffer and create a WASM module
       mymodule = LibWasm.wasm_runtime_load(wasm_file, wasm_file.size, "", 0)
       # create an instance of the WASM module (WASM linear memory is ready)
+      module_inst = LibWasm.wasm_runtime_instantiate(mymodule, 8092, 8092, "", 0)
+      # lookup a WASM function by its name
+      # The function signature can NULL here
+      func = LibWasm.wasm_runtime_lookup_function(module_inst, function_name, "")
+      # creat an execution environment to execute the WASM functions
+      exec_env = LibWasm.wasm_runtime_create_exec_env(module_inst, 8092)
+      # call the WASM function
+      if LibWasm.wasm_runtime_call_wasm(exec_env, func, argv.size, argv)
+        # the return value is stored in argv[0]
+        # argv = array of arguments
+        return argv[0]
+      else
+        LibWasm.wasm_runtime_get_exception(module_inst)
+        # exception is thrown if call fails
+      end
+
+      LibWasm.wasm_runtime_destroy_exec_env(exec_env)
+      LibWasm.wasm_runtime_deinstantiate(module_inst)
+      LibWasm.wasm_runtime_unload(mymodule)
+      LibWasm.wasm_runtime_destroy
+    end
+
+    def exec(wasm_file : String, functions = Hash(String, Array(Int32)).new, output = Hash(String, String).new)
+      LibWasm.wasm_runtime_init
+      mymodule = LibWasm.wasm_runtime_load(wasm_file, wasm_file.size, "", 0)
       module_inst = LibWasm.wasm_runtime_instantiate(mymodule, 8092, 8092, "", 0)
 
       functions.each do |x, argv|
@@ -92,24 +130,16 @@ module CrystalWamr
           argv << @hash[a]
         end
 
-        # lookup a WASM function by its name
-        # The function signature can NULL here
-        function = LibWasm.wasm_runtime_lookup_function(module_inst, x, "(NULL)")
+        function = LibWasm.wasm_runtime_lookup_function(module_inst, x, "")
 
-        # creat an execution environment to execute the WASM functions
         exec_env = LibWasm.wasm_runtime_create_exec_env(module_inst, 8092)
-        # call the WASM function
         if LibWasm.wasm_runtime_call_wasm(exec_env, function, argv.size, argv)
-          # the return value is stored in argv[0]
-          # argv = array of arguments
           add_to_hash(x, argv[0])
         else
           LibWasm.wasm_runtime_get_exception(module_inst)
-          # exception is thrown if call fails
         end
         functions.delete(x)
       end
-      # creat an execution environment to execute the WASM functions
       exec_env = LibWasm.wasm_runtime_create_exec_env(module_inst, 8092)
 
       LibWasm.wasm_runtime_destroy_exec_env(exec_env)
