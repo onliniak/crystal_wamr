@@ -130,13 +130,11 @@ module CrystalWamr
       else
         argv = sys.argv
       end
-      proc = capture do
-        if sys.name == "cbrt"
-          functions[index] << Math.cbrt(argv[0]).to_i
-        end
-        if sys.name == "hypot"
-          functions[index] << Math.hypot(argv[0], argv[1]).to_i
-        end
+      if sys.name == "cbrt"
+        functions[index] << Math.cbrt(argv[0]).to_i
+      end
+      if sys.name == "hypot"
+        functions[index] << Math.hypot(argv[0], argv[1]).to_i
       end
     end
   end
