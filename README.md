@@ -211,7 +211,7 @@ file = filename with extension .aot or .wasm
 ```
 ```
 func
-  name = name = name of the WASM function
+  name = name of the WASM function
   input
     argv = array of Int32 function parameters
       int = const int32
