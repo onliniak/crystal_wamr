@@ -232,10 +232,10 @@ file = filename with extension .aot or .wasm
 ```
 func
   name = name of the WASM function
-  input
-    argv = array of Int32 function parameters
+  input = array of Int32 function parameters
+    argv
       int = const int32
-      var
+      var = The result from the execution of the WASM function
         $URL # curl myweb.eu/27/17/10
           argv[0] = 27
           argv[1] = 17
