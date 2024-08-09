@@ -215,18 +215,17 @@ func
   input
     argv = array of Int32 function parameters
       int = const int32
-      case/switch var
-        when $URL # curl myweb.eu/27/17/10
+      var
+        $URL # curl myweb.eu/27/17/10
           argv[0] = 27
           argv[1] = 17
           argv[2] = 10
-        else # native_functions
-          # looking for line: if sys.name == "cbrt"
-          wasm_result = wasm.exec_once(...)
-          argv[0] = Math.cbrt(wasm_result)
+      sys # looking for line: if sys.name == "cbrt" inside config.cr
+        name
+        argv = array of arguments for native crystal function. Leave empty when $URL in use.
 
 ```
-```json
+```
 ]
   })
 ```
