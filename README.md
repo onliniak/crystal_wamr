@@ -4,9 +4,12 @@ TODO: Write a description here
 
 Tested with [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime) 1.2.3 and 2.1.0
 
+**No WASI Support** </br>
+**No Imports Support**
+
 As far as I understand WebAssembly is divided between two teams. The first sees WASM as a magical way to run a program written in any programming language on any operating system and hardware. If you are looking for something like this check out [Wasmer.cr](https://github.com/naqvis/wasmer-crystal) better.
 
-The second considers WASM's WAT to be a modern standalone programming language for plug-ins and smart contracts. This shard offers several low-level utilities for WASM 32 also known as "browser WASM" without any extensions, including WASI. Even though the runtime I use ([WAMR](https://github.com/bytecodealliance/wasm-micro-runtime)) offers such extensions.
+The second considers WASM's WAT to be a modern standalone programming language for plug-ins and smart contracts. This shard offers several low-level utilities for WASM 32 also known as "browser WASM" without any extensions, including WASI. Even though the runtime I use offers such extensions.
 
 ## Installation
 
@@ -62,10 +65,6 @@ p wasm.exec_once(File.read("lib/crystal_wamr/spec/fib.wasm"), "fib", [8]) # => 2
      })
  p wasm.return_hash # {"newarr" => 5, "newarra" => 10, "newarrb" => 15, "count" => 3, "first" => 5, "last" => 15}
 ```
-<details>
-<summary>
-C Source
-</summary>
 ```c
 extern int array[0] = 0;
 extern int size = 0;
@@ -97,7 +96,6 @@ extern int last(){
   return array[size - 1];
 }
 ```
-</details>
 
 3. exec_json lets you configure the library's operation with a json file.
 
@@ -182,10 +180,7 @@ module CrystalWamr
   end
 end
 ```
-<details>
-<summary>
-JSON
-</summary>
+### JSON
 ```json
 {
 "file": "lib/crystal_wamr/spec/math.wasm",
@@ -235,7 +230,6 @@ func
 ]
   })
 ```
-</details>
 ```
 The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27.
 It then passes $URL to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
