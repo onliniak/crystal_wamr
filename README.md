@@ -37,6 +37,8 @@ The second considers WASM's WAT to be a modern standalone programming language f
 
 The shard is divided into 3 parts: 
 
+0. ``` cd lib/crystal_wamr && crystal spec ``` => example wasm files in spec directory
+
 1. exec_once runs the WASM file and returns its result
 
 ```crystal
@@ -44,18 +46,58 @@ require "crystal_wamr"
 
 wasm = CrystalWamr::WASM.new
 
-p wasm.exec_once(File.read("spec/fib.wasm"), "fib", [8]) # => 21
+p wasm.exec_once(File.read("lib/crystal_wamr/spec/fib.wasm"), "fib", [8]) # => 21
 ```
 
 2. exec loads the WASM file, runs several functions and closes the WASM file
 
 ```crystal
-wasm.exec(File.read("spec/math.wasm"), {
-  "add" => [8, 12],
-  "power" => [3, 5]
-  })
-p wasm.return_hash # => {"add" => 20, "power" => 15}
+ wasm.exec(File.read("lib/crystal_wamr/array.wasm"), {
+     "newarr" => [5],
+     "newarra" => [10],
+     "newarrb" => [15],
+     "count" => [0],
+     "first" => [0],
+     "last" => [0]
+     })
+ p wasm.return_hash # {"newarr" => 5, "newarra" => 10, "newarrb" => 15, "count" => 3, "first" => 5, "last" => 15}
 ```
+<details>
+<summary>
+C Source
+</summary>
+```c
+extern int array[0] = 0;
+extern int size = 0;
+
+extern void newarr(int a){
+  array[size] = a;
+  size++;
+}
+
+extern void newarra(int a){
+  array[size] = a;
+  size++;
+}
+
+extern void newarrb(int a){
+  array[size] = a;
+  size++;
+}
+
+extern int count(){
+  return size;
+}
+
+extern int first(){
+  return array[0]; 
+}
+
+extern int last(){
+  return array[size - 1];
+}
+```
+</details>
 
 3. exec_json lets you configure the library's operation with a json file.
 
@@ -140,20 +182,61 @@ module CrystalWamr
   end
 end
 ```
-```
-You can run several functions simultaneously. 
-
+<details>
+<summary>
+JSON
+</summary>
+```json
+{
+"file": "lib/crystal_wamr/spec/math.wasm",
+ ```
 file = filename with extension .aot or .wasm
-name = name of the WASM function
 
-input 
-  argv = array of Int32 numbers
-    int = array Int32
-    var = use number from web address or result of another function
-    sys = pass the result to the crystal function
-      name = function name
-      argv = function arguments : Int32  
+```json
+ "func": [
+    {
+      "name": "add",
+      "input": [
+        {
+          "argv": {
+            "int": 2
+          }
+        },
+        {
+          "argv": {
+            "var": "$URL",
+            "sys": {
+              "name": "cbrt",
+              "argv": []
+            }
+          }
+        }
+      ]
+    },
+```
+```
+func
+  name = name = name of the WASM function
+  input
+    argv = array of Int32 function parameters
+      int = const int32
+      case/switch var
+        when $URL # curl myweb.eu/27/17/10
+          argv[0] = 27
+          argv[1] = 17
+          argv[2] = 10
+        else # native_functions
+          # looking for line: if sys.name == "cbrt"
+          wasm_result = wasm.exec_once(...)
+          argv[0] = Math.cbrt(wasm_result)
 
+```
+```json
+]
+  })
+```
+</details>
+```
 The add function retrieves the web address. For example, myweb.eu/27 => $URL = 27.
 It then passes $URL to the Math.cbrt function and we have 3. Finally, it adds the result to 2.
 
@@ -205,52 +288,6 @@ extern int string(int s){
 }
 ```
 
-### Arrays
-
-```c
-extern int array[0] = 0;
-extern int size = 0;
-
-extern void newarr(int a){
-  array[size] = a;
-  size++;
-}
-
-extern void newarra(int a){
-  array[size] = a;
-  size++;
-}
-
-extern void newarrb(int a){
-  array[size] = a;
-  size++;
-}
-
-extern int count(){
-  return size;
-}
-
-extern int first(){
-  return array[0]; 
-}
-
-extern int last(){
-  return array[size - 1];
-}
-```
-
-```crystal
- wasm.exec(File.read("x.wasm"), {
-     "newarr" => [5],
-     "newarra" => [10],
-     "newarrb" => [15],
-     "count" => [0],
-     "first" => [0],
-     "last" => [0]
-     })
- p wasm.return_hash # {"newarr" => 5, "newarra" => 10, "newarrb" => 15, "count" => 3, "first" => 5, "last" => 15}
-```
-
 ## Compilation
 
 ### Clang
@@ -297,44 +334,12 @@ extern int add(int a, int b){
      1.22 ± 0.54 times faster than iwasm -f add add.wasm 8 12
 ```
 
-### I want to run the benchmark myself
+### Another example
 
-```c
-// from kign's c4wa README
-extern int collatz(int N) {
-    int len = 0;
-    unsigned long n = N;
-    do {
-        if (n == 1)
-            break;
-        if (n % 2 == 0)
-            n /= 2;
-        else
-            n = 3 * n + 1;
-        len ++;
-    }
-    while(1);
-    return len;
-}
-```
+``` cd lib/crystal_wamr && crystal spec --tag "aot-benchmark" ```
+``` cd lib/crystal_wamr && crystal spec --tag "native-benchmark" ```
 
-```crystal
-def collatz(c, only_result : Bool)
-  argv = Array(Int32 | Float64).new
-  while c != 1
-    if c % 2 > 0
-      c = 3 * c + 1
-    else
-      c /= 2
-    end
-    argv << c
-  end
-  p argv unless only_result
-  p "#N : #{argv.size}"
-end
-```
-
-The identical code in the crystal and C4WA has a similar speed. However, it is quite possible that I made some serious mistakes in the code and the speed of this library will be lower than iwasm. If it bothers you PR welcome.
+[on server] The identical code in the crystal and C4WA -> AOT has a similar speed. However, it is quite possible that I made some serious mistakes in the code and the speed of this library will be lower than iwasm. If it bothers you PR welcome.
 
 ## Known Issues
 
