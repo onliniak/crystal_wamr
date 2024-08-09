@@ -134,6 +134,8 @@ require "crystal_wamr"
 require "./config"
 
 wasm = CrystalWamr::WASM.new
+ENV["PORT"] = "8080"
+ENV["HOST"] = "0.0.0.0"
 
 config = CrystalWamr::WamrConfig.from_json(%({
   "file": "lib/crystal_wamr/spec/math.wasm",
@@ -176,13 +178,13 @@ config = CrystalWamr::WamrConfig.from_json(%({
   }))
 
 server = HTTP::Server.new do |context|
-  wasm.exec_json(CrystalWamr::WamrConfig.from_json(File.read("config.json")), context.request.path.strip("/"))
+  wasm.exec_json(CrystalWamr::WamrConfig.from_json(File.read("config.json")), context.request.path)
 
   context.response.content_type = "text/plain"
   context.response.print wasm.return_hash.to_s
 end
 
-address = server.bind_tcp "0.0.0.0", 8080
+address = server.bind_tcp ENV["HOST"], ENV["PORT"].to_i
 server.listen
 ```
 ```crystal
@@ -350,6 +352,61 @@ extern int add(int a, int b){
 - If you are using AOT make sure wamrc is in the same version as iwasm.
 - This shard don't support WASI and Imports.
 - The function you are trying to run returns an array, char or any other type that is not int, double, float, long
+
+### Regex::MatchData
+
+```
+$ ./main
+2024-08-09T15:50:56.396554Z  ERROR - http.server: Unhandled exception on HTTP::Handler
+Invalid Int32: "Regex::MatchData(\"\")" (ArgumentError)
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+
+"/favicon.ico"
+2024-08-09T15:50:57.094293Z  ERROR - http.server: Unhandled exception on HTTP::Handler
+Invalid Int32: "Regex::MatchData(\"\")" (ArgumentError)
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+
+2024-08-09T15:51:30.364346Z  ERROR - http.server: Unhandled exception on HTTP::Handler
+Invalid Int32: "Regex::MatchData(\"14\")" (ArgumentError)
+  from /usr/local/lib/crystal/string.cr:448:5 in 'to_i32'
+  from /usr/local/lib/crystal/string.cr:349:5 in 'to_i'
+  from /root/wasm-micro-runtime/lib/crystal_wamr/src/crystal_wamr.cr:68:18 in 'function_args'
+  from /root/wasm-micro-runtime/lib/crystal_wamr/src/crystal_wamr.cr:87:27 in 'exec_json'
+  from /root/wasm-micro-runtime/lib/crystal_wamr/src/crystal_wamr.cr:84:5 in 'exec_json'
+  from /root/wasm-micro-runtime/main.cr:10:5 in '->'
+  from /usr/local/lib/crystal/http/server/request_processor.cr:51:20 in 'process'
+  from /usr/local/lib/crystal/http/server.cr:521:5 in 'handle_client'
+  from /usr/local/lib/crystal/http/server.cr:451:5 in '->'
+  from /usr/local/lib/crystal/fiber.cr:146:11 in 'run'
+  from /usr/local/lib/crystal/fiber.cr:98:34 in '->'
+
+"/14"
+2024-08-09T16:42:16.059106Z  ERROR - http.server: Unhandled exception on HTTP::Handler
+Invalid Int32: "Regex::MatchData(\"\")" (ArgumentError)
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+  from ???
+```
 
 ## Development
 

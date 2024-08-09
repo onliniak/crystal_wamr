@@ -1,5 +1,5 @@
 require "spec"
-require "crystal_wamr"
+require "./../src/crystal_wamr"
 
 module CrystalWamr
   class WASM
