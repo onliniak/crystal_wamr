@@ -30,11 +30,20 @@ The second considers WASM's WAT to be a modern standalone programming language f
 
 ### FreeBSD
 
-1. ``` git clone https://github.com/bytecodealliance/wasm-micro-runtime.git ```
-2. https://github.com/bytecodealliance/wasm-micro-runtime/blob/main/product-mini/README.md
-3. copy build/libiwasm.so and build/libvmlib.a to crystal project directory
-4. ``` crystal build main.cr --release --no-debug --static ```
-5. The ./main file should work on servers where iwasm is not installed
+```sh
+ git clone https://github.com/bytecodealliance/wasm-micro-runtime.git
+ cd wasm-micro-runtime
+mdkir build
+cd build
+cmake ..
+cd ..
+make # [50%]  Build target iwasm_static
+  	 # [100%] Built target iwasm_shared
+mv libvmlib.a /usr/local/lib/libiwasm.a && mv libiwasm.so /usr/local/lib/libiwasm.so # !Rename libvmlib.a to libiwasm.a!
+crystal build main.cr --release --static --no-debug # over 25Mb file
+chmod +x main # on server
+```
+
 
 ## Usage
 
