@@ -32,16 +32,18 @@ The second considers WASM's WAT to be a modern standalone programming language f
 
 ```sh
  git clone https://github.com/bytecodealliance/wasm-micro-runtime.git
- cd wasm-micro-runtime
-mdkir build
-cd build
-cmake ..
-cd ..
-make # [50%]  Build target iwasm_static
-  	 # [100%] Built target iwasm_shared
-mv libvmlib.a /usr/local/lib/libiwasm.a && mv libiwasm.so /usr/local/lib/libiwasm.so # !Rename libvmlib.a to libiwasm.a!
-crystal build main.cr --release --static --no-debug # over 25Mb file
-chmod +x main # on server
+ cd wasm-micro-runtime/product-mini/platforms/freebsd
+ mkdir build && cd build
+ cmake ..
+ make
+ mv iwasm /usr/local/bin/iwasm
+ mv libiwasm.so /usr/local/lib/libiwasm.so
+ mv libvmlib.a /usr/local/lib/libvmlib.a
+ crystal init app myapp
+ cd myapp # && shards install
+ cd lib/crystal_wamr
+ iwasm --version # check if iwasm is installed
+ crystal spec # check if libiwasm.so is installed
 ```
 
 
@@ -357,57 +359,24 @@ extern int add(int a, int b){
 
 ### Regex::MatchData
 
+Fixed ?
+
+### Stack guard pages
+
+Wrong iwasm installed
+Try ``` cd lib/crystal_wamr && crystal spec ```
+
+Reinstall shard: ``` rm shard.lock && shards install ```
+
 ```
-$ ./main
-2024-08-09T15:50:56.396554Z  ERROR - http.server: Unhandled exception on HTTP::Handler
-Invalid Int32: "Regex::MatchData(\"\")" (ArgumentError)
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
+Failed to init stack guard pages
+[10:07:17:747 - 2781C4C18000]: wasm_runtime_malloc failed: memory hasn't been initialized.
 
-"/favicon.ico"
-2024-08-09T15:50:57.094293Z  ERROR - http.server: Unhandled exception on HTTP::Handler
-Invalid Int32: "Regex::MatchData(\"\")" (ArgumentError)
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-
-2024-08-09T15:51:30.364346Z  ERROR - http.server: Unhandled exception on HTTP::Handler
-Invalid Int32: "Regex::MatchData(\"14\")" (ArgumentError)
-  from /usr/local/lib/crystal/string.cr:448:5 in 'to_i32'
-  from /usr/local/lib/crystal/string.cr:349:5 in 'to_i'
-  from /root/wasm-micro-runtime/lib/crystal_wamr/src/crystal_wamr.cr:68:18 in 'function_args'
-  from /root/wasm-micro-runtime/lib/crystal_wamr/src/crystal_wamr.cr:87:27 in 'exec_json'
-  from /root/wasm-micro-runtime/lib/crystal_wamr/src/crystal_wamr.cr:84:5 in 'exec_json'
-  from /root/wasm-micro-runtime/main.cr:10:5 in '->'
-  from /usr/local/lib/crystal/http/server/request_processor.cr:51:20 in 'process'
-  from /usr/local/lib/crystal/http/server.cr:521:5 in 'handle_client'
-  from /usr/local/lib/crystal/http/server.cr:451:5 in '->'
-  from /usr/local/lib/crystal/fiber.cr:146:11 in 'run'
-  from /usr/local/lib/crystal/fiber.cr:98:34 in '->'
-
-"/14"
-2024-08-09T16:42:16.059106Z  ERROR - http.server: Unhandled exception on HTTP::Handler
-Invalid Int32: "Regex::MatchData(\"\")" (ArgumentError)
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
-  from ???
+Invalid memory access (signal 11) at address 0x0
+[0x417699] ???
+[0x417668] ???
+[0x7def2f] ???
+[0x7de4f4] ???
 ```
 
 ## Development
