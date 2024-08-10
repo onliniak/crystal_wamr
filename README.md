@@ -46,6 +46,34 @@ The second considers WASM's WAT to be a modern standalone programming language f
  crystal spec # check if libiwasm.so is installed
 ```
 
+Server
+
+You must add -Wl,-rpath=ABSOLUTE_PATH to gcc.
+
+0. ``` rm /usr/local/lib/libiwasm.so /usr/local/lib/libvmlib.a /usr/local/bin/iwasm ```
+1. ``` cd wasm-micro-runtime/product-mini/platforms/freebsd/build && make ```
+2. ``` mv iwasm.so /server/iwasm.so && mv libvmlib.a /server/libvmlib.a && mv /usr/local/bin/crystal /server/crystal && mv /usr/local/bin/shards /server/shards  ```
+3. Build on server.
+```sh
+chmod +x crystal
+chmod +x shards
+mkdir lib/crystal # Crystal will look for .so files in this directory by default. Problem is, the executable itself does not use this directory.
+cp libiwasm.so lib/crystal/libiwasm.so
+cp libvmlib.a lib/crystal/libvmlib.a
+./crystal init app test
+mkdir extra
+cp libiwasm.so test/extra/libiwasm.so
+cp libvmlib.a test/extra/libvmlib.a
+mv crystal test/crystal
+mv shards test/shards
+cd test
+./shards install
+nano lib/crystal_wamr/src/crystal_wamr.cr # add new line before @[Link("iwasm")] => @[Link(ldflags: "-Wl,-rpath=/usr/home/onliniak/domains/test.onliniak.ct8.pl/public_html/test/extra")] # !!! MUST BE ABSOLUTE PATH
+touch main.cr
+./crystal build main.cr
+./main # check if linking works
+```
+
 
 ## Usage
 
