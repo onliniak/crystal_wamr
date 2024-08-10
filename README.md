@@ -198,8 +198,10 @@ module CrystalWamr
       argv = [] of Int32
       if sys.argv.size == 0
         argv = url_path
+    elsif sys.argv.size > 0
+      argv = sys.argv
       else
-        argv = sys.argv
+        argv = url_path
       end
       if sys.name == "cbrt"
         functions[index] << Math.cbrt(argv[0]).to_i

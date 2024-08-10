@@ -60,15 +60,15 @@ module CrystalWamr
     end
 
     def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output, path)
-      x = [] of Int32
+      x = [0, 0, 0, 0, 0]
       if variable == "$URL"
-        if /\d*/.match(path).to_s != ""
-          a = path.scan /\d*/
-          a.each do |v|
-            x << v.to_s.to_i unless v.to_s == ""
-          end
-        else
-          x = [0, 0, 0, 0, 0]
+    sas = /(([0-9]+)\/?([0-9]*)\/?([0-9]*)\/?([0-9]*)\/?([0-9]*)\/?)/.match(path)
+    if sas != nil
+    i = 0
+    sas.not_nil!.captures.each do |v|
+      x.insert 0, v.not_nil!.to_i unless v == nil || v == "" || i == 0
+      i += 1
+    end
         end
       end
       native_functions sys, functions, index, x
