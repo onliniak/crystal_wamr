@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.10.1">
-<meta name="crystal_docs.project_version" content="0.1">
+<meta name="crystal_docs.project_version" content="0.1.0">
 <meta name="crystal_docs.project_name" content="crystal_wamr">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="../js/doc.js"></script>
 
   <meta name="repository-name" content="crystal_wamr">
-  <title>CrystalWamr::WASM - crystal_wamr 0.1</title>
+  <title>CrystalWamr::WASM - crystal_wamr 0.1.0</title>
   <script type="text/javascript">
     CrystalDocs.base_path = "../";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        0.1
+        0.1.0
       </span>
     </div>
   </div>
@@ -56,6 +56,11 @@
 
   <div class="types-list">
     <ul>
+  
+  <li class=" " data-id="crystal_wamr/toplevel" data-name="top level namespace">
+      <a href="../toplevel.html">Top Level Namespace</a>
+      
+    </li>
   
   <li class="parent open current" data-id="crystal_wamr/CrystalWamr" data-name="crystalwamr">
       <a href="../CrystalWamr.html">CrystalWamr</a>
@@ -152,23 +157,6 @@
 
 
 
-  <h2>
-    <a id="macro-summary" class="anchor" href="#macro-summary">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Macro Summary
-  </h2>
-  <ul class="list-summary">
-    
-      <li class="entry-summary">
-        <a href="#return_string%28file%2Cfunc%2Cmax_word_length%3D16%29-macro" class="signature"><strong>return_string</strong>(file, func, max_word_length = <span class="n">16</span>)</a>
-        
-      </li>
-    
-  </ul>
-
 
 
   <h2>
@@ -189,6 +177,8 @@
       <li class="entry-summary">
         <a href="#exec%28wasm_file%3AString%2Cfunctions%3DHash%28String%2CArray%28Int32%29%29.new%2Coutput%3DHash%28String%2CString%29.new%29-instance-method" class="signature"><strong>#exec</strong>(wasm_file : String, functions = <span class="t">Hash</span>(<span class="t">String</span>, <span class="t">Array</span>(<span class="t">Int32</span>)).new, output = <span class="t">Hash</span>(<span class="t">String</span>, <span class="t">String</span>).new)</a>
         
+          <div class="summary"><p><code>wasm.exec(File.read(&quot;lib/crystal_wamr/array.wasm&quot;), { &quot;newarr&quot; =&gt; [5], &quot;newarra&quot; =&gt; [10], &quot;newarrb&quot; =&gt; [15], &quot;count&quot; =&gt; [0], &quot;first&quot; =&gt; [0], &quot;last&quot; =&gt; [0], }) p wasm.return_hash # {&quot;newarr&quot; =&gt; 5, &quot;newarra&quot; =&gt; 10, &quot;newarrb&quot; =&gt; 15, &quot;count&quot; =&gt; 3, &quot;first&quot; =&gt; 5, &quot;last&quot; =&gt; 15}</code></p></div>
+        
       </li>
     
       <li class="entry-summary">
@@ -198,6 +188,8 @@
     
       <li class="entry-summary">
         <a href="#exec_once%28wasm_file%3AString%2Cfunction_name%3AString%2Cargv%3AArray%28Int32%29%29-instance-method" class="signature"><strong>#exec_once</strong>(wasm_file : String, function_name : String, argv : Array(Int32))</a>
+        
+          <div class="summary"><p>p wasm.exec_once(File.read(&quot;lib/crystal_wamr/spec/fib.wasm&quot;), &quot;fib&quot;, [8]) # =&gt; 21 ```</p></div>
         
       </li>
     
@@ -223,6 +215,16 @@
     
       <li class="entry-summary">
         <a href="#function_args%28value%3ANil%2Cvariable%3AString%7CNil%2Csys%2Cfunctions%2Cindex%2Coutput%2Cpath%29-instance-method" class="signature"><strong>#function_args</strong>(value : Nil, variable : String | Nil, sys, functions, index, output, path)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#native_functions%28sys%2Cfunctions%2Cindex%2Curl_path%3AString%29-instance-method" class="signature"><strong>#native_functions</strong>(sys, functions, index, url_path : String)</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#native_functions%28sys%2Cfunctions%2Cindex%2Curl_path%3AArray%28Int32%29%29-instance-method" class="signature"><strong>#native_functions</strong>(sys, functions, index, url_path : Array(Int32))</a>
         
       </li>
     
@@ -270,30 +272,6 @@
 
 
 
-  <h2>
-    <a id="macro-detail" class="anchor" href="#macro-detail">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>
-    Macro Detail
-  </h2>
-  
-    <div class="entry-detail" id="return_string(file,func,max_word_length=16)-macro">
-      <div class="signature">
-        
-        macro <strong>return_string</strong>(file, func, max_word_length = <span class="n">16</span>)
-
-        <a class="method-permalink" href="#return_string%28file%2Cfunc%2Cmax_word_length%3D16%29-macro">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-      </div>
-    </div>
-  
-
 
 
   <h2>
@@ -327,6 +305,19 @@
         <a class="method-permalink" href="#exec%28wasm_file%3AString%2Cfunctions%3DHash%28String%2CArray%28Int32%29%29.new%2Coutput%3DHash%28String%2CString%29.new%29-instance-method">#</a>
       </div>
       
+        <div class="doc">
+          
+          <pre><code class="language-crystal">wasm.exec(<span class="t">File</span>.read(<span class="s">&quot;lib/crystal_wamr/array.wasm&quot;</span>), {
+  <span class="s">&quot;newarr&quot;</span>  <span class="o">=&gt;</span> [<span class="n">5</span>],
+  <span class="s">&quot;newarra&quot;</span> <span class="o">=&gt;</span> [<span class="n">10</span>],
+  <span class="s">&quot;newarrb&quot;</span> <span class="o">=&gt;</span> [<span class="n">15</span>],
+  <span class="s">&quot;count&quot;</span>   <span class="o">=&gt;</span> [<span class="n">0</span>],
+  <span class="s">&quot;first&quot;</span>   <span class="o">=&gt;</span> [<span class="n">0</span>],
+  <span class="s">&quot;last&quot;</span>    <span class="o">=&gt;</span> [<span class="n">0</span>],
+})
+p wasm.return_hash <span class="c"># {&quot;newarr&quot; =&gt; 5, &quot;newarra&quot; =&gt; 10, &quot;newarrb&quot; =&gt; 15, &quot;count&quot; =&gt; 3, &quot;first&quot; =&gt; 5, &quot;last&quot; =&gt; 15}</span></code></pre>
+        </div>
+      
       <br/>
       <div>
         
@@ -354,6 +345,12 @@
 
         <a class="method-permalink" href="#exec_once%28wasm_file%3AString%2Cfunction_name%3AString%2Cargv%3AArray%28Int32%29%29-instance-method">#</a>
       </div>
+      
+        <div class="doc">
+          
+          <p>p wasm.exec_once(File.read(&quot;lib/crystal_wamr/spec/fib.wasm&quot;), &quot;fib&quot;, [8]) # =&gt; 21</p>
+<pre><code class="language-crystal"></code></pre>
+        </div>
       
       <br/>
       <div>
@@ -423,6 +420,34 @@
         def <strong>function_args</strong>(value : Nil, variable : String | Nil, sys, functions, index, output, path)
 
         <a class="method-permalink" href="#function_args%28value%3ANil%2Cvariable%3AString%7CNil%2Csys%2Cfunctions%2Cindex%2Coutput%2Cpath%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="native_functions(sys,functions,index,url_path:String)-instance-method">
+      <div class="signature">
+        
+        def <strong>native_functions</strong>(sys, functions, index, url_path : String)
+
+        <a class="method-permalink" href="#native_functions%28sys%2Cfunctions%2Cindex%2Curl_path%3AString%29-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="native_functions(sys,functions,index,url_path:Array(Int32))-instance-method">
+      <div class="signature">
+        
+        def <strong>native_functions</strong>(sys, functions, index, url_path : Array(Int32))
+
+        <a class="method-permalink" href="#native_functions%28sys%2Cfunctions%2Cindex%2Curl_path%3AArray%28Int32%29%29-instance-method">#</a>
       </div>
       
       <br/>

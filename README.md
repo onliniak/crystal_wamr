@@ -5,11 +5,11 @@ TODO: Write a description here
 Tested with [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime) 1.2.3 and 2.1.0
 
 **No WASI Support** </br>
-**No Imports Support**
+**No Imports Support** </br>
+**WASM32 a.k.a. Browser** </br>
+**Custom Native Functions Implementation not compatible with other runtimes**
 
-As far as I understand WebAssembly is divided between two teams. The first sees WASM as a magical way to run a program written in any programming language on any operating system and hardware. If you are looking for something like this check out [Wasmer.cr](https://github.com/naqvis/wasmer-crystal) better.
-
-The second considers WASM's WAT to be a modern standalone programming language for plug-ins and smart contracts. This shard offers several low-level utilities for WASM 32 also known as "browser WASM" without any extensions, including WASI. Even though the runtime I use offers such extensions.
+If you need extensions like WASI/WASIX check out [wasmer-crystal](https://github.com/naqvis/wasmer-crystal) better.
 
 ## Installation
 
@@ -25,8 +25,30 @@ The second considers WASM's WAT to be a modern standalone programming language f
 
 ### Replit
 
-1. Open replit.nix
-2. Add pkgs.wamr
+   ```nix
+   #replit.nix
+   { pkgs }: {
+     deps = [
+       pkgs.crystal
+       pkgs.shards
+       pkgs.openssl
+       pkgs.pkg-config
+       pkgs.pcre2
+       pkgs.wamr
+     ];
+   }
+   ```
+
+   ```toml
+   #.replit
+
+  run = "crystal run main.cr"
+
+  entrypoint = "main.cr"
+
+  [nix]
+  channel = "stable-24_05"
+   ```
 
 ### FreeBSD
 
@@ -46,7 +68,7 @@ The second considers WASM's WAT to be a modern standalone programming language f
  crystal spec # check if libiwasm.so is installed
 ```
 
-Server
+#### Server
 
 You must add -Wl,-rpath=ABSOLUTE_PATH to gcc.
 
@@ -61,7 +83,7 @@ mkdir lib/crystal # Crystal will look for .so files in this directory by default
 cp libiwasm.so lib/crystal/libiwasm.so
 cp libvmlib.a lib/crystal/libvmlib.a
 ./crystal init app test
-mkdir extra
+mkdir test/extra
 cp libiwasm.so test/extra/libiwasm.so
 cp libvmlib.a test/extra/libvmlib.a
 mv crystal test/crystal
@@ -74,12 +96,11 @@ touch main.cr
 ./main # check if linking works
 ```
 
-
 ## Usage
 
 The shard is divided into 3 parts: 
 
-0. ``` cd lib/crystal_wamr && crystal spec ``` => example wasm files in spec directory
+0. ``` cd lib/crystal_wamr && crystal spec ``` => create example wasm files in spec directory
 
 1. exec_once runs the WASM file and returns its result
 
@@ -139,11 +160,7 @@ extern int last(){
 2.1. Read strings
 
 ```crystal
-module CrystalWamr
-  class WASM
-return_string(File.read("string.wasm"), "string") # "abcd"
-  end
-end
+crystal_wamr_return_string(File.read("string.wasm"), "string") # "abcd"
 ```
 
 ```c
@@ -221,9 +238,6 @@ server.listen
 # config.cr
 module CrystalWamr
   class WASM
-    def native_functions(sys, functions, index, url_path : String)
-    end
-
     def native_functions(sys, functions, index, url_path : Array(Int32))
       argv = [] of Int32
       if sys.argv.size == 0
@@ -306,12 +320,8 @@ TODO: Write usage instructions here
 Tip: Crystal will remove blank characters.
 
 ```crystal
-module CrystalWamr
-  class WASM
-return_string(File.read("string.wasm"), "string") # "Lorem ipsum dolor"
-return_string(File.read("string.wasm"), "string", x) # Returns x characters. Default = 16.
-  end
-end
+crystal_wamr_return_string(File.read("string.wasm"), "string") # "Lorem ipsum dolor"
+crystal_wamr_return_string(File.read("string.wasm"), "string", x) # Returns x characters. Default = 16.
 ```
 
 ```c
@@ -385,10 +395,6 @@ extern int add(int a, int b){
 - This shard don't support WASI and Imports.
 - The function you are trying to run returns an array, char or any other type that is not int, double, float, long
 
-### Regex::MatchData
-
-Fixed ?
-
 ### Stack guard pages
 
 Wrong iwasm installed
@@ -408,6 +414,8 @@ Invalid memory access (signal 11) at address 0x0
 ```
 
 ## Development
+
+WAMR API → https://bytecodealliance.github.io/wamr.dev/docs/html/wasm__export_8h.html
 
 TODO: Write development instructions here
 

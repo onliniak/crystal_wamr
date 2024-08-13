@@ -1,5 +1,28 @@
 require "./crystal_wamr_config"
 
+# Read strings
+
+# ```
+# crystal_wamr_return_string(File.read("string.wasm"), "string") # "abcd"
+# ```
+macro crystal_wamr_return_string(file, func, max_word_length = 16)
+    string = ""
+    wasm = CrystalWamr::WASM.new
+  {% for i in (0..max_word_length) %}
+        char = wasm.exec_once({{file}}, {{func}}, [{{i}}])
+        string += char.not_nil!.unsafe_chr
+  {% end %}
+    is_last_char_nil = string.byte_index '\u0000'
+
+    if is_last_char_nil == nil
+    p string
+    else
+    last = is_last_char_nil
+    last_char = last.not_nil! - 1
+    p string[0..last_char]
+    end
+end
+
 # TODO: Write documentation for `CrystalWamr`
 module CrystalWamr
   VERSION = "0.1.0"
@@ -12,7 +35,7 @@ module CrystalWamr
       type WASMExecEnv = Void
       type WASMFunctionInstanceCommon = Void
 
-      fun wasm_runtime_init : Bool
+      fun wasm_runtime_init
       fun wasm_runtime_load(LibC::Char*, LibC::UInt, LibC::Char*, LibC::UInt) : WASMModuleCommon*
       fun wasm_runtime_instantiate(WASMModuleCommon*, LibC::UInt, LibC::UInt, LibC::Char*, LibC::UInt) : WASMModuleInstanceCommon*
       fun wasm_runtime_lookup_function(WASMModuleInstanceCommon*, LibC::Char*, LibC::Char*) : WASMFunctionInstanceCommon*
@@ -22,7 +45,7 @@ module CrystalWamr
       fun wasm_runtime_destroy_exec_env(WASMExecEnv*)
       fun wasm_runtime_deinstantiate(WASMModuleInstanceCommon*)
       fun wasm_runtime_unload(WASMModuleCommon*)
-      fun wasm_runtime_destroy : Nil
+      fun wasm_runtime_destroy
     end
 
     @hash = Hash(String, Int32).new
@@ -35,23 +58,6 @@ module CrystalWamr
       return @hash
     end
 
-    macro return_string(file, func, max_word_length = 16)
-        string = ""
-      {% for i in (0..max_word_length) %}
-            char = wasm.exec_once({{file}}, {{func}}, [{{i}}])
-            string += char.not_nil!.unsafe_chr
-      {% end %}
-        is_last_char_nil = string.byte_index '\u0000'
-
-        if is_last_char_nil == nil
-        p string
-        else
-        last = is_last_char_nil
-        last_char = last.not_nil! - 1
-        p string[0..last_char]
-        end
-    end
-
     def function_args(value : Int32, variable : String?, sys, functions, index, output, path)
       functions[index] << value
     end
@@ -59,16 +65,30 @@ module CrystalWamr
     def function_args(value : Nil, variable : String?, sys, functions, index, output, path)
     end
 
+    def native_functions(sys, functions, index, url_path : String)
+    end
+
+    def native_functions(sys, functions, index, url_path : Array(Int32))
+      argv = [] of Int32
+      if sys.argv.size == 0
+        argv = url_path
+      elsif sys.argv.size > 0
+        argv = sys.argv
+      else
+        argv = url_path
+      end
+    end
+
     def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output, path)
       x = [0, 0, 0, 0, 0]
       if variable == "$URL"
-    sas = /(([0-9]+)\/?([0-9]*)\/?([0-9]*)\/?([0-9]*)\/?([0-9]*)\/?)/.match(path)
-    if sas != nil
-    i = 0
-    sas.not_nil!.captures.each do |v|
-      x.insert 0, v.not_nil!.to_i unless v == nil || v == "" || i == 0
-      i += 1
-    end
+        sas = /(([0-9]+)\/?([0-9]*)\/?([0-9]*)\/?([0-9]*)\/?([0-9]*)\/?)/.match(path)
+        if sas != nil
+          i = 0
+          sas.not_nil!.captures.each do |v|
+            x.insert 0, v.not_nil!.to_i unless v == nil || v == "" || i == 0
+            i += 1
+          end
         end
       end
       native_functions sys, functions, index, x
@@ -89,6 +109,15 @@ module CrystalWamr
       exec(File.read(config.file), functions, output)
     end
 
+    # exec_once runs the WASM file and returns its result
+
+    # ```
+    # require "crystal_wamr"
+
+    # wasm = CrystalWamr::WASM.new
+
+    # p wasm.exec_once(File.read("lib/crystal_wamr/spec/fib.wasm"), "fib", [8]) # => 21
+    # ```
     def exec_once(wasm_file : String, function_name : String, argv : Array(Int32))
       # initialize the wasm runtime by default configurations
       LibWasm.wasm_runtime_init
@@ -119,6 +148,19 @@ module CrystalWamr
       LibWasm.wasm_runtime_destroy
     end
 
+    # exec loads the WASM file, runs several functions and closes the WASM file
+
+    # ```
+    # wasm.exec(File.read("lib/crystal_wamr/array.wasm"), {
+    #   "newarr"  => [5],
+    #   "newarra" => [10],
+    #   "newarrb" => [15],
+    #   "count"   => [0],
+    #   "first"   => [0],
+    #   "last"    => [0],
+    # })
+    # p wasm.return_hash # {"newarr" => 5, "newarra" => 10, "newarrb" => 15, "count" => 3, "first" => 5, "last" => 15}
+    # ```
     def exec(wasm_file : String, functions = Hash(String, Array(Int32)).new, output = Hash(String, String).new)
       LibWasm.wasm_runtime_init
       mymodule = LibWasm.wasm_runtime_load(wasm_file, wasm_file.size, "", 0)

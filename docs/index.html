@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Crystal Docs 1.10.1">
-<meta name="crystal_docs.project_version" content="0.1">
+<meta name="crystal_docs.project_version" content="0.1.0">
 <meta name="crystal_docs.project_name" content="crystal_wamr">
 
 
@@ -14,7 +14,7 @@
 <script type="text/javascript" src="js/doc.js"></script>
 
   <meta name="repository-name" content="crystal_wamr">
-  <title>crystal_wamr 0.1</title>
+  <title>crystal_wamr 0.1.0</title>
   <script type="text/javascript">
   CrystalDocs.base_path = "";
   </script>
@@ -45,7 +45,7 @@
       </h1>
 
       <span class="project-version">
-        0.1
+        0.1.0
       </span>
     </div>
   </div>
@@ -56,6 +56,11 @@
 
   <div class="types-list">
     <ul>
+  
+  <li class=" " data-id="crystal_wamr/toplevel" data-name="top level namespace">
+      <a href="toplevel.html">Top Level Namespace</a>
+      
+    </li>
   
   <li class="parent " data-id="crystal_wamr/CrystalWamr" data-name="crystalwamr">
       <a href="CrystalWamr.html">CrystalWamr</a>
@@ -109,10 +114,12 @@
   </svg>
 </a>crystal_wamr</h1>
 <p><span class="flag orange">TODO</span>  Write a description here</p>
-<p>Bindings to <a href="https://github.com/bytecodealliance/wasm-micro-runtime">WAMR</a>.
-Tested with 1.2.3</p>
-<p>For production apps use https://github.com/naqvis/wasmer-crystal</p>
-<p>Why? I wanted to have user-submitted functions on free hosting without sudo, but with SSH.</p>
+<p>Tested with <a href="https://github.com/bytecodealliance/wasm-micro-runtime">WAMR</a> 1.2.3 and 2.1.0</p>
+<p><strong>No WASI Support</strong> </br>
+<strong>No Imports Support</strong> </br>
+<strong>WASM32 a.k.a. Browser</strong> </br>
+<strong>Custom Native Functions Implementation not compatible with other runtimes</strong></p>
+<p>If you need extensions like WASI/WASIX check out <a href="https://github.com/naqvis/wasmer-crystal">wasmer-crystal</a> better.</p>
 <h2><a id="installation" class="anchor" href="#installation">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -129,24 +136,348 @@ Tested with 1.2.3</p>
 <p>Run <code>shards install</code></p>
 </li>
 </ol>
+<h3><a id="replit" class="anchor" href="#replit">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Replit</h3>
+<pre><code class="language-nix">#replit.nix
+{ pkgs }: {
+  deps = [
+    pkgs.crystal
+    pkgs.shards
+    pkgs.openssl
+    pkgs.pkg-config
+    pkgs.pcre2
+    pkgs.wamr
+  ];
+}</code></pre>
+<h3><a id="free-bsd" class="anchor" href="#free-bsd">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>FreeBSD</h3>
+<pre><code class="language-sh"> git clone https://github.com/bytecodealliance/wasm-micro-runtime.git
+ cd wasm-micro-runtime/product-mini/platforms/freebsd
+ mkdir build &amp;&amp; cd build
+ cmake ..
+ make
+ mv iwasm /usr/local/bin/iwasm
+ mv libiwasm.so /usr/local/lib/libiwasm.so
+ mv libvmlib.a /usr/local/lib/libvmlib.a
+ crystal init app myapp
+ cd myapp # &amp;&amp; shards install
+ cd lib/crystal_wamr
+ iwasm --version # check if iwasm is installed
+ crystal spec # check if libiwasm.so is installed</code></pre>
+<h4><a id="server" class="anchor" href="#server">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Server</h4>
+<p>You must add -Wl,-rpath=ABSOLUTE_PATH to gcc.</p>
+<ol start="0">
+<li><code>rm /usr/local/lib/libiwasm.so /usr/local/lib/libvmlib.a /usr/local/bin/iwasm</code></li>
+<li><code>cd wasm-micro-runtime/product-mini/platforms/freebsd/build &amp;&amp; make</code></li>
+<li><code>mv iwasm.so /server/iwasm.so &amp;&amp; mv libvmlib.a /server/libvmlib.a &amp;&amp; mv /usr/local/bin/crystal /server/crystal &amp;&amp; mv /usr/local/bin/shards /server/shards</code></li>
+<li>Build on server.</li>
+</ol>
+<pre><code class="language-sh">chmod +x crystal
+chmod +x shards
+mkdir lib/crystal # Crystal will look for .so files in this directory by default. Problem is, the executable itself does not use this directory.
+cp libiwasm.so lib/crystal/libiwasm.so
+cp libvmlib.a lib/crystal/libvmlib.a
+./crystal init app test
+mkdir test/extra
+cp libiwasm.so test/extra/libiwasm.so
+cp libvmlib.a test/extra/libvmlib.a
+mv crystal test/crystal
+mv shards test/shards
+cd test
+./shards install
+nano lib/crystal_wamr/src/crystal_wamr.cr # add new line before @[Link(&quot;iwasm&quot;)] =&gt; @[Link(ldflags: &quot;-Wl,-rpath=/usr/home/onliniak/domains/test.onliniak.ct8.pl/public_html/test/extra&quot;)] # !!! MUST BE ABSOLUTE PATH
+touch main.cr
+./crystal build main.cr
+./main # check if linking works</code></pre>
 <h2><a id="usage" class="anchor" href="#usage">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>Usage</h2>
+<p>The shard is divided into 3 parts:</p>
+<ol start="0">
+<li>
+<p><code>cd lib/crystal_wamr &amp;&amp; crystal spec</code> =&gt; create example wasm files in spec directory</p>
+</li>
+<li>
+<p>exec_once runs the WASM file and returns its result</p>
+</li>
+</ol>
 <pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;crystal_wamr&quot;</span>
 
 wasm <span class="o">=</span> <span class="t">CrystalWamr</span><span class="t">::</span><span class="t">WASM</span>.new
 
-argv <span class="o">=</span> <span class="t">Array</span>(<span class="t">Int32</span>).new
-argv <span class="o">&lt;&lt;</span> <span class="n">8</span>
-p wasm.exec(<span class="t">File</span>.read(<span class="s">&quot;fib.wasm&quot;</span>), <span class="s">&quot;fib&quot;</span>, argv) <span class="c"># =&gt; fib function return: 21</span>
+p wasm.exec_once(<span class="t">File</span>.read(<span class="s">&quot;lib/crystal_wamr/spec/fib.wasm&quot;</span>), <span class="s">&quot;fib&quot;</span>, [<span class="n">8</span>]) <span class="c"># =&gt; 21</span></code></pre>
+<ol start="2">
+<li>exec loads the WASM file, runs several functions and closes the WASM file</li>
+</ol>
+<pre><code class="language-crystal"> wasm.exec(<span class="t">File</span>.read(<span class="s">&quot;lib/crystal_wamr/array.wasm&quot;</span>), {
+     <span class="s">&quot;newarr&quot;</span> <span class="o">=&gt;</span> [<span class="n">5</span>],
+     <span class="s">&quot;newarra&quot;</span> <span class="o">=&gt;</span> [<span class="n">10</span>],
+     <span class="s">&quot;newarrb&quot;</span> <span class="o">=&gt;</span> [<span class="n">15</span>],
+     <span class="s">&quot;count&quot;</span> <span class="o">=&gt;</span> [<span class="n">0</span>],
+     <span class="s">&quot;first&quot;</span> <span class="o">=&gt;</span> [<span class="n">0</span>],
+     <span class="s">&quot;last&quot;</span> <span class="o">=&gt;</span> [<span class="n">0</span>]
+     })
+ p wasm.return_hash <span class="c"># {&quot;newarr&quot; =&gt; 5, &quot;newarra&quot; =&gt; 10, &quot;newarrb&quot; =&gt; 15, &quot;count&quot; =&gt; 3, &quot;first&quot; =&gt; 5, &quot;last&quot; =&gt; 15}</span></code></pre>
+<pre><code class="language-c">extern int array[0] = 0;
+extern int size = 0;
 
-argv <span class="o">=</span> <span class="t">Array</span>(<span class="t">Int32</span>).new
-argv <span class="o">&lt;&lt;</span> <span class="n">2</span>
-argv <span class="o">&lt;&lt;</span> <span class="n">3</span>
-p wasm.exec(<span class="t">File</span>.read(<span class="s">&quot;math.wasm&quot;</span>), <span class="s">&quot;pow&quot;</span>, argv, <span class="s">&quot;This is my custom message&quot;</span>) <span class="c"># =&gt; This is my custom message 8</span></code></pre>
+extern void newarr(int a){
+  array[size] = a;
+  size++;
+}
+
+extern void newarra(int a){
+  array[size] = a;
+  size++;
+}
+
+extern void newarrb(int a){
+  array[size] = a;
+  size++;
+}
+
+extern int count(){
+  return size;
+}
+
+extern int first(){
+  return array[0]; 
+}
+
+extern int last(){
+  return array[size - 1];
+}</code></pre>
+<p>2.1. Read strings</p>
+<pre><code class="language-crystal">crystal_wamr_return_string(<span class="t">File</span>.read(<span class="s">&quot;string.wasm&quot;</span>), <span class="s">&quot;string&quot;</span>) <span class="c"># &quot;abcd&quot;</span></code></pre>
+<pre><code class="language-c">const char* word = &quot;abcd&quot;;
+
+extern int string(int s){
+  int r = word[s];
+
+  return r;
+}</code></pre>
+<ol start="3">
+<li>exec_json lets you configure the library's operation with a json file.</li>
+</ol>
+<pre><code class="language-crystal"><span class="k">require</span> <span class="s">&quot;http/server&quot;</span>
+<span class="k">require</span> <span class="s">&quot;crystal_wamr&quot;</span>
+<span class="k">require</span> <span class="s">&quot;./config&quot;</span>
+
+wasm <span class="o">=</span> <span class="t">CrystalWamr</span><span class="t">::</span><span class="t">WASM</span>.new
+<span class="t">ENV</span>[<span class="s">&quot;PORT&quot;</span>] <span class="o">=</span> <span class="s">&quot;8080&quot;</span>
+<span class="t">ENV</span>[<span class="s">&quot;HOST&quot;</span>] <span class="o">=</span> <span class="s">&quot;0.0.0.0&quot;</span>
+
+config <span class="o">=</span> <span class="t">CrystalWamr</span><span class="t">::</span><span class="t">WamrConfig</span>.from_json(<span class="s">%({
+  &quot;file&quot;: &quot;lib/crystal_wamr/spec/math.wasm&quot;,
+  &quot;func&quot;: [
+    {
+      &quot;name&quot;: &quot;add&quot;,
+      &quot;input&quot;: [
+        {
+          &quot;argv&quot;: {
+            &quot;int&quot;: 2
+          }
+        },
+        {
+          &quot;argv&quot;: {
+            &quot;var&quot;: &quot;$URL&quot;,
+            &quot;sys&quot;: {
+              &quot;name&quot;: &quot;cbrt&quot;,
+              &quot;argv&quot;: []
+            }
+          }
+        }
+      ]
+    },
+    {
+      &quot;name&quot;: &quot;mul&quot;,
+      &quot;input&quot;: [
+        {
+          &quot;argv&quot;: {
+            &quot;int&quot;: 2
+          }
+        },
+        {
+          &quot;argv&quot;: {
+            &quot;var&quot;: &quot;add&quot;
+          }
+        }
+      ]
+    }
+  ]
+  })</span>)
+
+server <span class="o">=</span> <span class="t">HTTP</span><span class="t">::</span><span class="t">Server</span>.new <span class="k">do</span> <span class="o">|</span>context<span class="o">|</span>
+  wasm.exec_json(<span class="t">CrystalWamr</span><span class="t">::</span><span class="t">WamrConfig</span>.from_json(<span class="t">File</span>.read(<span class="s">&quot;config.json&quot;</span>)), context.request.path)
+
+  context.response.content_type <span class="o">=</span> <span class="s">&quot;text/plain&quot;</span>
+  context.response.print wasm.return_hash.to_s
+<span class="k">end</span>
+
+address <span class="o">=</span> server.bind_tcp <span class="t">ENV</span>[<span class="s">&quot;HOST&quot;</span>], <span class="t">ENV</span>[<span class="s">&quot;PORT&quot;</span>].to_i
+server.listen</code></pre>
+<pre><code class="language-crystal"><span class="c"># config.cr</span>
+<span class="k">module</span> <span class="t">CrystalWamr</span>
+  <span class="k">class</span> <span class="t">WASM</span>
+    <span class="k">def</span> <span class="m">native_functions</span>(sys, functions, index, url_path : <span class="t">Array</span>(<span class="t">Int32</span>))
+      argv <span class="o">=</span> <span class="o">[]</span> <span class="k">of</span> <span class="t">Int32</span>
+      <span class="k">if</span> sys.argv.size <span class="o">==</span> <span class="n">0</span>
+        argv <span class="o">=</span> url_path
+    <span class="k">elsif</span> sys.argv.size <span class="o">&gt;</span> <span class="n">0</span>
+      argv <span class="o">=</span> sys.argv
+      <span class="k">else</span>
+        argv <span class="o">=</span> url_path
+      <span class="k">end</span>
+      <span class="k">if</span> sys.name <span class="o">==</span> <span class="s">&quot;cbrt&quot;</span>
+        functions[index] <span class="o">&lt;&lt;</span> <span class="t">Math</span>.cbrt(argv[<span class="n">0</span>]).to_i
+      <span class="k">end</span>
+      <span class="k">if</span> sys.name <span class="o">==</span> <span class="s">&quot;hypot&quot;</span>
+        functions[index] <span class="o">&lt;&lt;</span> <span class="t">Math</span>.hypot(argv[<span class="n">0</span>], argv[<span class="n">1</span>]).to_i
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre>
+<h3><a id="json" class="anchor" href="#json">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>JSON</h3>
+<pre><code class="language-json">{
+&quot;file&quot;: &quot;lib/crystal_wamr/spec/math.wasm&quot;,</code></pre>
+<p>file = filename with extension .aot or .wasm</p>
+<pre><code class="language-json"> &quot;func&quot;: [
+    {
+      &quot;name&quot;: &quot;add&quot;,
+      &quot;input&quot;: [
+        {
+          &quot;argv&quot;: {
+            &quot;int&quot;: 2
+          }
+        },
+        {
+          &quot;argv&quot;: {
+            &quot;var&quot;: &quot;$URL&quot;,
+            &quot;sys&quot;: {
+              &quot;name&quot;: &quot;cbrt&quot;,
+              &quot;argv&quot;: []
+            }
+          }
+        }
+      ]
+    },</code></pre>
+<pre><code class="language-crystal">func
+  name <span class="o">=</span> name <span class="k">of</span> the <span class="t">WASM</span> function
+  input <span class="o">=</span> array <span class="k">of</span> <span class="t">Int32</span> function parameters
+    argv
+      int <span class="o">=</span> const int32
+      var <span class="o">=</span> <span class="t">The</span> result from the execution <span class="k">of</span> the <span class="t">WASM</span> function
+        $URL <span class="c"># curl myweb.eu/27/17/10</span>
+          argv[<span class="n">0</span>] <span class="o">=</span> <span class="n">27</span>
+          argv[<span class="n">1</span>] <span class="o">=</span> <span class="n">17</span>
+          argv[<span class="n">2</span>] <span class="o">=</span> <span class="n">10</span>
+      sys <span class="c"># looking for line: if sys.name == &quot;cbrt&quot; inside config.cr</span>
+        name
+        argv <span class="o">=</span> array <span class="k">of</span> arguments <span class="k">for</span> native crystal function. <span class="t">Leave</span> empty <span class="k">when</span> $URL <span class="k">in</span> use.
+</code></pre>
+<pre><code class="language-crystal">]
+  })</code></pre>
+<pre><code class="language-crystal"><span class="t">The</span> add function retrieves the web address. <span class="t">For</span> example, myweb.eu<span class="o">/</span><span class="n">27</span> <span class="o">=&gt;</span> $URL <span class="o">=</span> <span class="n">27</span>.
+<span class="t">It</span> <span class="k">then</span> passes $URL to the <span class="t">Math</span>.cbrt function and we have <span class="n">3</span>. <span class="t">Finally</span>, it adds the result to <span class="n">2</span>.
+
+<span class="t">The</span> mul function multiplies the result <span class="k">of</span> the add function (<span class="n">5</span> <span class="k">in</span> the example) by <span class="n">2</span>. </code></pre>
 <p><span class="flag orange">TODO</span>  Write usage instructions here</p>
+<h3><a id="strings" class="anchor" href="#strings">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Strings</h3>
+<p>Tip: Crystal will remove blank characters.</p>
+<pre><code class="language-crystal">crystal_wamr_return_string(<span class="t">File</span>.read(<span class="s">&quot;string.wasm&quot;</span>), <span class="s">&quot;string&quot;</span>) <span class="c"># &quot;Lorem ipsum dolor&quot;</span>
+crystal_wamr_return_string(<span class="t">File</span>.read(<span class="s">&quot;string.wasm&quot;</span>), <span class="s">&quot;string&quot;</span>, x) <span class="c"># Returns x characters. Default = 16.</span></code></pre>
+<pre><code class="language-c">const char* word = &quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&quot;;
+
+extern int string(int s){
+  int r = word[s];
+
+  return r;
+}</code></pre>
+<h2><a id="compilation" class="anchor" href="#compilation">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Compilation</h2>
+<h3><a id="clang" class="anchor" href="#clang">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Clang</h3>
+<ol>
+<li>https://github.com/WebAssembly/wasi-sdk/releases/latest</li>
+<li><code>./wasi-sdk-23.0-x86_64-linux/bin/clang --target=wasm32 -nostdlib -Wl,--no-entry -Wl,--export-all -o main.wasm main.c</code></li>
+</ol>
+<h3><a id="c4-wa" class="anchor" href="#c4-wa">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>C4WA</h3>
+<ol>
+<li>https://github.com/kign/c4wa/releases/latest</li>
+<li><code>./c4wa-compile-0.5/bin/c4wa-compile main.c</code></li>
+</ol>
+<h2><a id="expected-performance" class="anchor" href="#expected-performance">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Expected performance</h2>
+<h3><a id="wizard-mode" class="anchor" href="#wizard-mode">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Wizard mode</h3>
+<pre><code class="language-c">extern int add(int a, int b){
+  return a + b;
+}</code></pre>
+<pre><code class="language-bash"> hyperfine --warmup 3 './single_aot' './hash_aot' 'iwasm -f add add.wasm 8 12' -i -N
+ Benchmark 1: ./single_aot
+   Time (mean ± σ):      14.1 ms ±   4.1 ms    [User: 1.4 ms, System: 10.5 ms]
+   Range (min … max):    10.2 ms …  36.4 ms    131 runs
+
+   Warning: Statistical outliers were detected. Consider re-running this benchmark on a quiet system without any interferences from other programs. It might help to use the '--warmup' or '--prepare' options.
+
+ Benchmark 2: ./hash_aot
+   Time (mean ± σ):      13.5 ms ±   3.0 ms    [User: 1.1 ms, System: 10.6 ms]
+   Range (min … max):     9.7 ms …  28.8 ms    202 runs
+
+ Benchmark 3: iwasm -f add add.wasm 8 12
+   Time (mean ± σ):      16.5 ms ±   6.3 ms    [User: 0.7 ms, System: 10.9 ms]
+   Range (min … max):     9.9 ms …  59.4 ms    260 runs
+
+   Warning: Statistical outliers were detected. Consider re-running this benchmark on a quiet system without any interferences from other programs. It might help to use the '--warmup' or '--prepare' options.
+
+ Summary
+   ./hash_aot ran
+     1.05 ± 0.38 times faster than ./single_aot
+     1.22 ± 0.54 times faster than iwasm -f add add.wasm 8 12</code></pre>
+<h3><a id="another-example" class="anchor" href="#another-example">
+  <svg class="octicon-link" aria-hidden="true">
+    <use href="#octicon-link"/>
+  </svg>
+</a>Another example</h3>
+<p><code>cd lib/crystal_wamr &amp;&amp; crystal spec --tag &quot;aot-benchmark&quot;</code>
+<code>cd lib/crystal_wamr &amp;&amp; crystal spec --tag &quot;native-benchmark&quot;</code></p>
+<p>[on server] The identical code in the crystal and C4WA -&gt; AOT has a similar speed. However, it is quite possible that I made some serious mistakes in the code and the speed of this library will be lower than iwasm. If it bothers you PR welcome.</p>
 <h2><a id="known-issues" class="anchor" href="#known-issues">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
@@ -157,28 +488,33 @@ p wasm.exec(<span class="t">File</span>.read(<span class="s">&quot;math.wasm&quo
     <use href="#octicon-link"/>
   </svg>
 </a>Invalid memory access (signal 11) at address 0x0</h3>
-<p>Use https://github.com/naqvis/wasmer-crystal
-If you are using AOT make sure wamrc is in the same version as iwasm</p>
-<p>For some reason grain lang and TinyGO reject argv array.
-<a href="https://github.com/kign/c4wa">c4WA</a> works. I haven't checked emscripten but it likely works.</p>
-<h3><a id="assembly-script-exception-failed-to-call-unlinked-import-function-env-abort." class="anchor" href="#assembly-script-exception-failed-to-call-unlinked-import-function-env-abort.">
+<ul>
+<li>If you are using AOT make sure wamrc is in the same version as iwasm.</li>
+<li>This shard don't support WASI and Imports.</li>
+<li>The function you are trying to run returns an array, char or any other type that is not int, double, float, long</li>
+</ul>
+<h3><a id="stack-guard-pages" class="anchor" href="#stack-guard-pages">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
-</a>AssemblyScript: &quot;Exception: failed to call unlinked import function (env, abort)&quot;.</h3>
-<p>https://github.com/bytecodealliance/wasm-micro-runtime/issues/510</p>
-<h3><a id="strings" class="anchor" href="#strings">
-  <svg class="octicon-link" aria-hidden="true">
-    <use href="#octicon-link"/>
-  </svg>
-</a>Strings</h3>
-<p>It seems that on the default settings you can not return array. Only single numeric value. But I could be wrong.
-EDIT: https://github.com/bytecodealliance/wasm-micro-runtime/issues/263</p>
+</a>Stack guard pages</h3>
+<p>Wrong iwasm installed
+Try <code>cd lib/crystal_wamr &amp;&amp; crystal spec</code></p>
+<p>Reinstall shard: <code>rm shard.lock &amp;&amp; shards install</code></p>
+<pre><code class="language-crystal">Failed to init stack guard pages
+[10:07:17:747 - 2781C4C18000]: wasm_runtime_malloc failed: memory hasn&#39;t been initialized.
+
+Invalid memory access (signal 11) at address 0x0
+[0x417699] ???
+[0x417668] ???
+[0x7def2f] ???
+[0x7de4f4] ???</code></pre>
 <h2><a id="development" class="anchor" href="#development">
   <svg class="octicon-link" aria-hidden="true">
     <use href="#octicon-link"/>
   </svg>
 </a>Development</h2>
+<p>WAMR API → https://bytecodealliance.github.io/wamr.dev/docs/html/wasm__export_8h.html</p>
 <p><span class="flag orange">TODO</span>  Write development instructions here</p>
 <h2><a id="contributing" class="anchor" href="#contributing">
   <svg class="octicon-link" aria-hidden="true">
