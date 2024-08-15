@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 describe CrystalWamr do
-  # TODO: Write tests
+  # This spec will create wasm files the first time you run the command `crystal spec`
 
   it "works (single argument)" do
     wasm = CrystalWamr::WASM.new
@@ -29,7 +29,7 @@ describe CrystalWamr do
 
   it "works (HTTP)" do
     wasm = CrystalWamr::WASM.new
-    context_request_resource = "/27"
+    context_request_resource = "/nonremittal/charismatic/acute/ride/27"
     path = context_request_resource # .strip "/"
 
     config = CrystalWamr::WamrConfig.from_json(%({
@@ -79,7 +79,7 @@ describe CrystalWamr do
 
   it "works (HTTP -> depth 2)" do
     wasm = CrystalWamr::WASM.new
-    context_request_resource = "/5/12"
+    context_request_resource = "/proud/insurance/conscious/crowd/5/12"
     path = context_request_resource # .strip "/"
 
     config = CrystalWamr::WamrConfig.from_json(%({

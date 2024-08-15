@@ -1,9 +1,9 @@
 name: crystal_wamr
-version: 0.1.0
+version: 0.1.1
 
 authors:
   - Rafael Pszenny <onliniak@gmail.com>
 
-crystal: 1.2.2
+crystal: 1.10.0 #1.11.2
 
 license: MIT

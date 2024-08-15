@@ -5,21 +5,21 @@ require "./crystal_wamr_config"
 # ```
 # crystal_wamr_return_string(File.read("string.wasm"), "string") # "abcd"
 # ```
-macro crystal_wamr_return_string(file, func, max_word_length = 16)
-    string = ""
+macro crystal_wamr_return_string(file, func, io_github_onliniak_max_word_length = 16)
+  io_github_onliniak_string = ""
     wasm = CrystalWamr::WASM.new
-  {% for i in (0..max_word_length) %}
-        char = wasm.exec_once({{file}}, {{func}}, [{{i}}])
-        string += char.not_nil!.unsafe_chr
+  {% for i in (0..io_github_onliniak_max_word_length) %}
+    io_github_onliniak_char = wasm.exec_once({{file}}, {{func}}, [{{i}}])
+    io_github_onliniak_string += io_github_onliniak_char.not_nil!.unsafe_chr
   {% end %}
-    is_last_char_nil = string.byte_index '\u0000'
+  io_github_onliniak_is_last_char_nil = io_github_onliniak_string.byte_index '\u0000'
 
-    if is_last_char_nil == nil
-    p string
+    if io_github_onliniak_is_last_char_nil == nil
+    io_github_onliniak_string
     else
-    last = is_last_char_nil
-    last_char = last.not_nil! - 1
-    p string[0..last_char]
+  io_github_onliniak_last = io_github_onliniak_is_last_char_nil
+  io_github_onliniak_last_char = io_github_onliniak_last.not_nil! - 1
+    io_github_onliniak_string[0..io_github_onliniak_last_char]
     end
 end
 
@@ -50,7 +50,7 @@ module CrystalWamr
 
     @hash = Hash(String, Int32).new
 
-    def add_to_hash(name, value)
+    protected def add_to_hash(name, value)
       @hash[name] = value
     end
 
@@ -58,14 +58,14 @@ module CrystalWamr
       return @hash
     end
 
-    def function_args(value : Int32, variable : String?, sys, functions, index, output, path)
+    protected def function_args(value : Int32, variable : String?, sys, functions, index, output, path)
       functions[index] << value
     end
 
-    def function_args(value : Nil, variable : String?, sys, functions, index, output, path)
+    protected def function_args(value : Nil, variable : String?, sys, functions, index, output, path)
     end
 
-    def native_functions(sys, functions, index, url_path : String)
+    protected def native_functions(sys, functions, index, url_path : String)
     end
 
     def native_functions(sys, functions, index, url_path : Array(Int32))
@@ -79,7 +79,7 @@ module CrystalWamr
       end
     end
 
-    def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output, path)
+    protected def function_args(value : Nil, variable : String, sys : CrystalWamr::Sys, functions, index, output, path)
       x = [0, 0, 0, 0, 0]
       if variable == "$URL"
         sas = /(([0-9]+)\/?([0-9]*)\/?([0-9]*)\/?([0-9]*)\/?([0-9]*)\/?)/.match(path)
@@ -94,11 +94,11 @@ module CrystalWamr
       native_functions sys, functions, index, x
     end
 
-    def function_args(value : Nil, variable : String, sys : Nil, functions, index, output, path)
+    protected def function_args(value : Nil, variable : String, sys : Nil, functions, index, output, path)
       output[index] = variable
     end
 
-    def function_args(value : Nil, variable : String?, sys : Nil, functions, index, output, path)
+    protected def function_args(value : Nil, variable : String?, sys : Nil, functions, index, output, path)
     end
 
     def exec_json(config : CrystalWamr::WamrConfig, path : String, functions = Hash(String, Array(Int32)).new, output = Hash(String, String).new)

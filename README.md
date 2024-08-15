@@ -6,7 +6,7 @@ Tested with [WAMR](https://github.com/bytecodealliance/wasm-micro-runtime) 1.2.3
 
 **No WASI Support** </br>
 **No Imports Support** </br>
-**WASM32 a.k.a. Browser** </br>
+**Pure WASM32 a.k.a. Browser** </br>
 **Custom Native Functions Implementation not compatible with other runtimes**
 
 If you need extensions like WASI/WASIX check out [wasmer-crystal](https://github.com/naqvis/wasmer-crystal) better.
